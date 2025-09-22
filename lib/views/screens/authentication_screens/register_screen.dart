@@ -1,27 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vanh_store_app/controllers/auth_controller.dart';
-import 'package:vanh_store_app/views/screens/authentication_screens/register_screen.dart';
+import 'package:vanh_store_app/views/screens/authentication_screens/login_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  LoginScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  RegisterScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final AuthController _authController = AuthController();
   late String email;
+  late String fullName;
   late String password;
   bool isLoading = false;
-  void loginUser() async {
+  void registerUser() async {
     setState(() {
       isLoading = true;
     });
     await _authController
-        .signInUser(context: context, email: email, password: password)
+        .signUpUser(
+          context: context,
+          email: email,
+          fullName: fullName,
+          password: password,
+        )
         .whenComplete(() {
           setState(() {
             isLoading = false;
@@ -83,7 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                     validator: (value) {
                       if (value!.isEmpty) {
-                        return 'Enter your Email';
+                        return 'enter your Email';
                       } else {
                         return null;
                       }
@@ -113,6 +119,64 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   SizedBox(height: 20),
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      'Full Name',
+                      style: GoogleFonts.getFont(
+                        'Nunito Sans',
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ),
+                  TextFormField(
+                    onChanged: (value) {
+                      fullName = value;
+                    },
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Enter your FullName';
+                      } else {
+                        return null;
+                      }
+                    },
+                    decoration: InputDecoration(
+                      fillColor: Colors.white,
+                      filled: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(9),
+                      ),
+                      focusedBorder: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      labelText: 'Enter Your Full name',
+                      labelStyle: GoogleFonts.getFont(
+                        'Nunito Sans',
+                        fontSize: 14,
+                        letterSpacing: 0.1,
+                      ),
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Image.asset(
+                          'assets/icons/user.jpeg',
+                          width: 20,
+                          height: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      'Password',
+                      style: GoogleFonts.getFont(
+                        'Nunito Sans',
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ),
                   TextFormField(
                     onChanged: (value) {
                       password = value;
@@ -153,7 +217,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   InkWell(
                     onTap: () async {
                       if (_formKey.currentState!.validate()) {
-                        loginUser();
+                        registerUser();
                       }
                     },
                     child: Container(
@@ -226,7 +290,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     color: Colors.white,
                                   )
                                 : Text(
-                                    'Sign in',
+                                    'Sign Up',
                                     style: GoogleFonts.getFont(
                                       'Lato',
                                       fontSize: 18,
@@ -244,7 +308,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Need an Account ?',
+                        'Already have an Account ?',
                         style: GoogleFonts.roboto(
                           fontWeight: FontWeight.w500,
                           letterSpacing: 1,
@@ -257,13 +321,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             context,
                             MaterialPageRoute(
                               builder: (context) {
-                                return RegisterScreen();
+                                return LoginScreen();
                               },
                             ),
                           );
                         },
                         child: Text(
-                          'Sign Up',
+                          'Sign In',
                           style: GoogleFonts.roboto(
                             color: Color(0xFF103DE5),
                             letterSpacing: 1,
