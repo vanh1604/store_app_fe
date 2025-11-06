@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:vanh_store_app/views/screens/nav_screens/widgets/banner_widget.dart';
+import 'package:vanh_store_app/views/screens/nav_screens/widgets/category_item.dart';
 import 'package:vanh_store_app/views/screens/nav_screens/widgets/header_widget.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -7,7 +9,9 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(child: Column(children: [HeaderWidget()])),
+      body: ListView(
+        children: [HeaderWidget(), BannerWidget(), CategoryItemWidget()],
+      ),
     );
   }
 }

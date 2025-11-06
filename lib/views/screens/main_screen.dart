@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:vanh_store_app/views/screens/nav_screens/account_screen.dart';
 import 'package:vanh_store_app/views/screens/nav_screens/cart_screen.dart';
+import 'package:vanh_store_app/views/screens/nav_screens/category_screen.dart';
 import 'package:vanh_store_app/views/screens/nav_screens/favorite_screen.dart';
 import 'package:vanh_store_app/views/screens/nav_screens/home_screen.dart';
 import 'package:vanh_store_app/views/screens/nav_screens/store_screen.dart';
@@ -17,6 +18,7 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _pages = [
     HomeScreen(),
     FavoriteScreen(),
+    CategoryScreen(),
     StoreScreen(),
     CartScreen(),
     AccountScreen(),
@@ -44,16 +46,16 @@ class _MainScreenState extends State<MainScreen> {
             label: 'Favorites',
           ),
           BottomNavigationBarItem(
+            icon: Icon(Icons.category, size: 25),
+            label: 'Categories',
+          ),
+          BottomNavigationBarItem(
             icon: Image.asset("assets/icons/mart.png", width: 25),
             label: 'Stores',
           ),
           BottomNavigationBarItem(
             icon: Image.asset("assets/icons/cart.png", width: 25),
             label: 'Cart',
-          ),
-          BottomNavigationBarItem(
-            icon: Image.asset("assets/icons/user.png", width: 25),
-            label: 'Account',
           ),
           BottomNavigationBarItem(
             icon: Image.asset("assets/icons/user.png", width: 25),
