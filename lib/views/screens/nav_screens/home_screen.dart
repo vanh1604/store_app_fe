@@ -9,9 +9,13 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: ListView(
-        children: [HeaderWidget(), BannerWidget(), CategoryItemWidget()],
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(
+          MediaQuery.of(context).size.height * 0.2,
+        ),
+        child: HeaderWidget(),
       ),
+      body: ListView(children: [BannerWidget(), CategoryItemWidget()]),
     );
   }
 }

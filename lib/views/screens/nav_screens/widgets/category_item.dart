@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vanh_store_app/controllers/category_controller.dart';
 import 'package:vanh_store_app/models/category.dart';
+import 'package:vanh_store_app/views/detail/screens/inner_category_screen.dart';
 import 'package:vanh_store_app/views/screens/nav_screens/widgets/reusable_text_widget.dart';
 
 class CategoryItemWidget extends StatefulWidget {
@@ -51,28 +52,39 @@ class _CategoryItemWidgetState extends State<CategoryItemWidget> {
                   mainAxisSpacing: 8,
                 ),
                 itemBuilder: (context, index) {
-                  return Column(
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(5),
+                  return InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              InnerCategoryScreen(category: categories[index]),
                         ),
-                        child: Image.network(
-                          categories[index].image,
-                          fit: BoxFit.cover,
-                          width: 47,
-                          height: 47,
+                      );
+                    },
+                    child: Column(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: Image.network(
+                            categories[index].image,
+                            fit: BoxFit.cover,
+                            width: 47,
+                            height: 47,
+                          ),
                         ),
-                      ),
-                      Flexible(
-                        child: Text(
-                          categories[index].name,
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        Flexible(
+                          child: Text(
+                            categories[index].name,
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   );
                 },
               );

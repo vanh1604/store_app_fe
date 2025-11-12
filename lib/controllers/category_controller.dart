@@ -14,13 +14,11 @@ class CategoryController {
       );
 
       if (res.statusCode == 200) {
-        print(res.body);
         Map<String, dynamic> responseData = jsonDecode(res.body);
         List<dynamic> data = responseData['category'] ?? [];
         List<Category> categories = data
             .map((category) => Category.fromJson(category))
             .toList();
-        print(categories);
         return categories;
       } else {
         throw Exception("Failed to load categories");
