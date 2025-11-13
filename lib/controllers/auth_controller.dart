@@ -1,12 +1,17 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vanh_store_app/global_variables.dart';
 import 'package:vanh_store_app/models/user.dart';
 import 'package:http/http.dart' as http;
+import 'package:vanh_store_app/provider/user_provider.dart';
 import 'package:vanh_store_app/services/manage_http_response.dart';
 import 'package:vanh_store_app/views/screens/authentication_screens/login_screen.dart';
 import 'package:vanh_store_app/views/screens/main_screen.dart';
+
+final providerContainer = ProviderContainer();
 
 class AuthController {
   Future<void> signUpUser({
@@ -33,7 +38,7 @@ class AuthController {
           "Content-Type": "application/json;charset=UTF-8",
         },
       );
-      manageHtppResponse(
+      manageHttpResponse(
         res: res,
         context: context,
         onSuccess: () {
@@ -64,10 +69,16 @@ class AuthController {
           "Content-Type": "application/json;charset=UTF-8",
         },
       );
-      manageHtppResponse(
+      manageHttpResponse(
         res: res,
         context: context,
-        onSuccess: () {
+        onSuccess: () async {
+          SharedPreferences preferences = await SharedPreferences.getInstance();
+          String token = jsonDecode(res.body)['token'];
+          await preferences.setString('auth-token', token);
+          final userJson = jsonEncode(jsonDecode(res.body)['user']);
+          providerContainer.read(userProvider.notifier).setUser(userJson);
+          await preferences.setString('user', userJson);
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => MainScreen()),
@@ -78,6 +89,24 @@ class AuthController {
       );
     } catch (e) {
       debugPrint('Đã xảy ra lỗi khi đăng nhập: $e');
+      showSnackBar(context, 'Đã xảy ra lỗi: $e');
+    }
+  }
+
+  Future<void> signOutUser({required context}) async {
+    try {
+      SharedPreferences preferences = await SharedPreferences.getInstance();
+      await preferences.remove('auth-token');
+      await preferences.remove('user');
+      providerContainer.read(userProvider.notifier).signOut();
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => LoginScreen()),
+        ((route) => false),
+      );
+      showSnackBar(context, 'Logout successfully');
+    } catch (e) {
+      debugPrint('Đã xảy ra lỗi khi đăng xuất: $e');
       showSnackBar(context, 'Đã xảy ra lỗi: $e');
     }
   }

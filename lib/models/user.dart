@@ -38,14 +38,14 @@ class User {
 
   factory User.fromMap(Map<String, dynamic> map) {
     return User(
-      id: map['_id'],
-      fullName: map['fullName'],
-      state: map['state'],
-      city: map['city'],
-      locality: map['locality'],
-      email: map['email'],
-      password: map['password'],
-      token: map['token'],
+      id: map['_id'] ?? '',
+      fullName: map['fullName'] ?? '',
+      state: map['state'] ?? '',
+      city: map['city'] ?? '',
+      locality: map['locality'] ?? '',
+      email: map['email'] ?? '',
+      password: map['password'] ?? '',
+      token: map['token'] ?? '',
     );
   }
 

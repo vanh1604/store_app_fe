@@ -1,10 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:vanh_store_app/controllers/auth_controller.dart';
 
 class AccountScreen extends StatelessWidget {
-  const AccountScreen({super.key});
+  AccountScreen({super.key});
+  final AuthController authController = AuthController();
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: Center(child: Text('Account screen')));
+    return Center(
+      child: ElevatedButton(
+        onPressed: () async {
+          await authController.signOutUser(context: context);
+        },
+        child: Text('Sign Out'),
+      ),
+    );
   }
 }

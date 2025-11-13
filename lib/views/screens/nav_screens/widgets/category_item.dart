@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:vanh_store_app/controllers/category_controller.dart';
 import 'package:vanh_store_app/models/category.dart';
 import 'package:vanh_store_app/views/detail/screens/inner_category_screen.dart';
