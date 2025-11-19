@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:vanh_store_app/views/screens/nav_screens/widgets/banner_widget.dart';
 import 'package:vanh_store_app/views/screens/nav_screens/widgets/category_item.dart';
 import 'package:vanh_store_app/views/screens/nav_screens/widgets/header_widget.dart';
+import 'package:vanh_store_app/views/screens/nav_screens/widgets/popular_products_widget.dart';
+import 'package:vanh_store_app/views/screens/nav_screens/widgets/reusable_text_widget.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -15,7 +17,14 @@ class HomeScreen extends StatelessWidget {
         ),
         child: HeaderWidget(),
       ),
-      body: ListView(children: [BannerWidget(), CategoryItemWidget()]),
+      body: ListView(
+        children: [
+          BannerWidget(),
+          CategoryItemWidget(),
+          ReusableTextWidget(title: 'Popular Products', subtitle: 'View All'),
+          PopularProductsWidget(),
+        ],
+      ),
     );
   }
 }
