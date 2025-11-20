@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:vanh_store_app/controllers/product_controller.dart';
 import 'package:vanh_store_app/controllers/subcategory_controller.dart';
 import 'package:vanh_store_app/models/category.dart';
+import 'package:vanh_store_app/models/product.dart';
 import 'package:vanh_store_app/models/subcategory.dart';
 import 'package:vanh_store_app/views/detail/screens/widgets/inner_banner_widget.dart';
 import 'package:vanh_store_app/views/detail/screens/widgets/subcategory_tile_widget.dart';
+import 'package:vanh_store_app/views/screens/nav_screens/widgets/product_item_widget.dart';
+import 'package:vanh_store_app/views/screens/nav_screens/widgets/reusable_text_widget.dart';
 
 class InnerCategoryContentWidget extends StatefulWidget {
   const InnerCategoryContentWidget({super.key, required this.category});
@@ -18,12 +22,15 @@ class InnerCategoryContentWidget extends StatefulWidget {
 class _InnerCategoryContentWidgetState
     extends State<InnerCategoryContentWidget> {
   late Future<List<Subcategory>> _subcategories;
-  final SubcategoryController _subcategoryController = SubcategoryController();
+  late Future<List<Product>> _futureProducts;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    _subcategories = _subcategoryController.getSubCategoriesByCategoryName(
+    _subcategories = SubcategoryController().getSubCategoriesByCategoryName(
+      widget.category!.name,
+    );
+    _futureProducts = ProductController().loadProductByCategory(
       widget.category!.name,
     );
   }
@@ -94,6 +101,33 @@ class _InnerCategoryContentWidgetState
                           );
                         },
                       ),
+                    ),
+                  );
+                }
+              },
+            ),
+            ReusableTextWidget(title: 'Popular Product', subtitle: 'View All'),
+            FutureBuilder<List<Product>>(
+              future: _futureProducts,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(child: Text('No popular products found.'));
+                } else {
+                  List<Product> popularProducts = snapshot.data!;
+                  // You can build your UI with the popularProducts list here
+                  return SizedBox(
+                    height: 250,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: popularProducts.length,
+                      itemBuilder: (context, index) {
+                        Product product = popularProducts[index];
+                        return ProductItemWidget(product: product);
+                      },
                     ),
                   );
                 }

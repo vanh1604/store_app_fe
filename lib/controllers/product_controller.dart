@@ -28,4 +28,52 @@ class ProductController {
       throw Exception('An error occurred while loading products: $e');
     }
   }
+
+  Future<List<Product>> loadProductByCategory(String category) async {
+    try {
+      http.Response res = await http.get(
+        Uri.parse("$uri/api/getproductByCategory/$category"),
+        headers: <String, String>{
+          "Content-Type": "application/json; charset=UTF-8",
+        },
+      );
+
+      if (res.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(res.body);
+        List<Product> products = data
+            .map((product) => Product.fromMap(product))
+            .toList();
+        return products;
+      } else {
+        throw Exception("Failed to load products by category");
+      }
+    } catch (e) {
+      print("Error: $e");
+      throw Exception(
+        'An error occurred while loading products by category: $e',
+      );
+    }
+  }
+
+  Future<Product> loadProductById(String id) async {
+    try {
+      http.Response res = await http.get(
+        Uri.parse("$uri/api/getproductById/$id"),
+        headers: <String, String>{
+          "Content-Type": "application/json; charset=UTF-8",
+        },
+      );
+
+      if (res.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(res.body);
+        print(data);
+        return Product.fromMap(data);
+      } else {
+        throw Exception("Failed to load products by id");
+      }
+    } catch (e) {
+      print("Error: $e");
+      throw Exception('An error occurred while loading products by id: $e');
+    }
+  }
 }

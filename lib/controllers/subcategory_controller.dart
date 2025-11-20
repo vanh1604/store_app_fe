@@ -18,7 +18,7 @@ class SubcategoryController {
       if (response.statusCode == 200) {
         Map<String, dynamic> responseData = jsonDecode(response.body);
         List<dynamic> data = responseData['subCategories'] ?? [];
-        print(data);
+
         if (data.isNotEmpty) {
           return data
               .map((subcategory) => Subcategory.fromJson(subcategory))
