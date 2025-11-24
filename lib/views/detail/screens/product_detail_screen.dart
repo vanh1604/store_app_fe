@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vanh_store_app/controllers/product_controller.dart';
+import 'package:vanh_store_app/models/product.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   const ProductDetailScreen({super.key, required this.productId});
@@ -10,17 +11,45 @@ class ProductDetailScreen extends StatefulWidget {
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
-  late Future<void> _productDetailFuture;
+  late Product _productData;
+  bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
-    _productDetailFuture = ProductController().loadProductById(
-      widget.productId!,
-    );
+    _fetchProductData();
+  }
+
+  @override
+  Future<void> _fetchProductData() async {
+    try {
+      // Gọi controller để lấy dữ liệu
+      // Lưu ý: Hàm loadProductById trong Controller CẦN return về dữ liệu
+      final data = await ProductController().loadProductById(widget.productId!);
+
+      if (mounted) {
+        // Kiểm tra widget còn tồn tại không trước khi setState
+        setState(() {
+          _productData = data;
+          _isLoading = false; // Đã load xong
+        });
+      }
+    } catch (e) {
+      print("Lỗi load sản phẩm: $e");
+      if (mounted) {
+        setState(() {
+          _isLoading = false; // Dừng loading kể cả khi lỗi
+        });
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -31,19 +60,153 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ),
         ),
         centerTitle: true,
+        actions: [
+          IconButton(onPressed: () {}, icon: Icon(Icons.favorite_border)),
+        ],
       ),
-      body: FutureBuilder<void>(
-        future: _productDetailFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else {
-            // Display product details here
-            return Center(child: Text('Product details loaded successfully.'));
-          }
-        },
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 260,
+              height: 275,
+              clipBehavior: Clip.hardEdge,
+              decoration: BoxDecoration(),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned(
+                    left: 0,
+                    top: 50,
+                    child: Container(
+                      width: 260,
+                      height: 260,
+                      clipBehavior: Clip.hardEdge,
+                      decoration: BoxDecoration(
+                        color: Color(0XFFD8DDFF),
+                        borderRadius: BorderRadius.circular(130),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: 22,
+                    top: 0,
+                    child: Container(
+                      width: 216,
+                      height: 274,
+                      clipBehavior: Clip.hardEdge,
+                      decoration: BoxDecoration(
+                        color: Color(0xFF9CA8FF),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: SizedBox(
+                        height: 300,
+                        // Dùng trực tiếp biến _productData ở đây
+                        child: PageView.builder(
+                          itemCount: _productData.images.length,
+                          itemBuilder: (context, index) {
+                            return Image.network(
+                              _productData.images![index],
+                              fit: BoxFit.cover,
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  _productData.name,
+                  style: GoogleFonts.roboto(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1,
+                    color: Color(0xFF3C55Ef),
+                  ),
+                ),
+                Text(
+                  ' \$${_productData.price}',
+                  style: GoogleFonts.roboto(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
+                    color: Color(0xFF3C55Ef),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              _productData.category,
+              style: GoogleFonts.roboto(
+                fontSize: 16,
+                color: Colors.grey,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "About",
+                  style: GoogleFonts.lato(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1.7,
+                    color: Color(0xFF363330),
+                  ),
+                ),
+                Text(
+                  _productData.description,
+                  style: GoogleFonts.mochiyPopOne(
+                    letterSpacing: 2,
+                    fontSize: 15,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      bottomSheet: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: InkWell(
+          onTap: () {},
+          child: Container(
+            width: 386,
+            height: 46,
+            clipBehavior: Clip.hardEdge,
+            decoration: BoxDecoration(
+              color: Color(0xFF3B54EE),
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Center(
+              child: Text(
+                'ADD TO CART',
+                style: GoogleFonts.mochiyPopOne(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
