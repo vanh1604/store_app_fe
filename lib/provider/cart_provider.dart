@@ -1,6 +1,10 @@
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:vanh_store_app/models/cart.dart';
 
+final cartProvider = StateNotifierProvider<CartNotifier, Map<String, Cart>>(
+  (ref) => CartNotifier(),
+);
+
 class CartNotifier extends StateNotifier<Map<String, Cart>> {
   CartNotifier() : super({});
 
@@ -21,7 +25,7 @@ class CartNotifier extends StateNotifier<Map<String, Cart>> {
         ...state,
         productId: Cart(
           productName: state[productId]!.productName,
-          quantity: state[productId]!.quantity,
+          quantity: state[productId]!.quantity++,
           price: state[productId]!.price,
           image: state[productId]!.image,
           category: state[productId]!.category,
@@ -34,6 +38,7 @@ class CartNotifier extends StateNotifier<Map<String, Cart>> {
       };
     } else {
       state = {
+        ...state,
         productId: Cart(
           productName: productName,
           quantity: quantity,
@@ -48,5 +53,35 @@ class CartNotifier extends StateNotifier<Map<String, Cart>> {
         ),
       };
     }
+    print(state);
+  }
+
+  void IncremantQuantity(String productId) {
+    if (state.containsKey(productId)) {
+      state[productId]!.quantity++;
+      state = {...state};
+    }
+  }
+
+  void DecremantQuantity(String productId) {
+    if (state.containsKey(productId)) {
+      state[productId]!.quantity--;
+      state = {...state};
+    }
+  }
+
+  void removeProduct(String productId) {
+    if (state.containsKey(productId)) {
+      state.remove(productId);
+      state = {...state};
+    }
+  }
+
+  double calculateTotalAmount() {
+    double totalAmount = 0.0;
+    state.forEach((productId, cartItem) {
+      totalAmount += cartItem.price * cartItem.quantity;
+    });
+    return totalAmount;
   }
 }

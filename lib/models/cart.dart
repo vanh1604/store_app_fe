@@ -1,6 +1,6 @@
 class Cart {
   final String productName;
-  final int quantity;
+  int quantity;
   final double price;
   final List<String> image;
   final String category;

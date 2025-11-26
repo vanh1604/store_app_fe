@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vanh_store_app/controllers/product_controller.dart';
 import 'package:vanh_store_app/models/product.dart';
+import 'package:vanh_store_app/provider/cart_provider.dart';
+import 'package:vanh_store_app/services/manage_http_response.dart';
 
-class ProductDetailScreen extends StatefulWidget {
+class ProductDetailScreen extends ConsumerStatefulWidget {
   const ProductDetailScreen({super.key, required this.productId});
   final String? productId;
   @override
   _ProductDetailScreenState createState() => _ProductDetailScreenState();
 }
 
-class _ProductDetailScreenState extends State<ProductDetailScreen> {
+class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   late Product _productData;
   bool _isLoading = true;
 
@@ -46,6 +49,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final _cartprovider = ref.watch(cartProvider.notifier);
     if (_isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -172,10 +176,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ),
                 Text(
                   _productData.description,
-                  style: GoogleFonts.mochiyPopOne(
-                    letterSpacing: 2,
-                    fontSize: 15,
-                  ),
+                  style: GoogleFonts.lato(letterSpacing: 2, fontSize: 15),
                 ),
               ],
             ),
@@ -185,7 +186,24 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       bottomSheet: Padding(
         padding: const EdgeInsets.all(8.0),
         child: InkWell(
-          onTap: () {},
+          onTap: () {
+            _cartprovider.addProductToCart(
+              productName: _productData.name,
+              quantity: 1,
+              price: _productData.price,
+              image: _productData.images,
+              category: _productData.category,
+              vendorId: _productData.vendorId,
+              productId: _productData.id,
+              productDescription: _productData.description,
+              productQuantity: _productData.quantity,
+              fullName: _productData.fullName,
+            );
+            showSnackBar(
+              context,
+              'Added ${_productData.name} to cart successfully',
+            );
+          },
           child: Container(
             width: 386,
             height: 46,

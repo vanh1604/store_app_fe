@@ -15,7 +15,7 @@ class ProductController {
 
       if (res.statusCode == 200) {
         final List<dynamic> data = jsonDecode(res.body);
-        print(data);
+
         List<Product> products = data
             .map((product) => Product.fromMap(product))
             .toList();
@@ -37,7 +37,6 @@ class ProductController {
           "Content-Type": "application/json; charset=UTF-8",
         },
       );
-
       if (res.statusCode == 200) {
         final List<dynamic> data = jsonDecode(res.body);
         List<Product> products = data
@@ -66,7 +65,6 @@ class ProductController {
 
       if (res.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(res.body);
-        print(data);
         return Product.fromMap(data);
       } else {
         throw Exception("Failed to load products by id");
