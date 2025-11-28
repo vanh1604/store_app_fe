@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -14,6 +15,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   @override
   Widget build(BuildContext context) {
     final cartData = ref.watch(cartProvider);
+    final _cartProvider = ref.read(cartProvider.notifier);
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(
@@ -143,6 +145,118 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                         ),
                       ],
                     ),
+                  ),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: cartData.length,
+                    itemBuilder: (context, index) {
+                      final cartItem = cartData[index];
+                      return Card(
+                        child: SizedBox(
+                          height: 200,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SizedBox(
+                                height: 100,
+                                width: 100,
+                                child: Image.network(
+                                  cartItem!.image[0],
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              Column(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    cartItem.productName,
+                                    style: GoogleFonts.lato(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  Text(
+                                    cartItem.category,
+                                    style: GoogleFonts.roboto(
+                                      fontSize: 13,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  Text(
+                                    "\$${cartItem.price.toStringAsFixed(2)}",
+                                    style: GoogleFonts.lato(
+                                      fontSize: 15,
+                                      color: Colors.pink,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        height: 40,
+                                        width: 120,
+                                        decoration: BoxDecoration(
+                                          color: Color.fromARGB(
+                                            255,
+                                            56,
+                                            126,
+                                            207,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            IconButton(
+                                              onPressed: () {
+                                                _cartProvider.DecremantQuantity(
+                                                  cartItem.productId,
+                                                );
+                                              },
+                                              icon: Icon(
+                                                CupertinoIcons.minus,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                            Text(
+                                              cartItem.quantity.toString(),
+                                              style: GoogleFonts.lato(
+                                                color: Colors.white,
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            IconButton(
+                                              onPressed: () {
+                                                _cartProvider.IncremantQuantity(
+                                                  cartItem.productId,
+                                                );
+                                              },
+                                              icon: Icon(
+                                                CupertinoIcons.plus,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  IconButton(
+                                    onPressed: () {
+                                      _cartProvider.removeProduct(
+                                        cartItem.productId,
+                                      );
+                                    },
+                                    icon: Icon(CupertinoIcons.delete),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
