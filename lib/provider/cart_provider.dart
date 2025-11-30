@@ -25,7 +25,7 @@ class CartNotifier extends StateNotifier<Map<String, Cart>> {
         ...state,
         productId: Cart(
           productName: state[productId]!.productName,
-          quantity: state[productId]!.quantity++,
+          quantity: state[productId]!.quantity + 1,
           price: state[productId]!.price,
           image: state[productId]!.image,
           category: state[productId]!.category,
@@ -58,14 +58,14 @@ class CartNotifier extends StateNotifier<Map<String, Cart>> {
 
   void IncremantQuantity(String productId) {
     if (state.containsKey(productId)) {
-      state[productId]!.quantity++;
+      state[productId]!.quantity + 1;
       state = {...state};
     }
   }
 
   void DecremantQuantity(String productId) {
     if (state.containsKey(productId)) {
-      state[productId]!.quantity--;
+      state[productId]!.quantity - 1;
       state = {...state};
     }
   }

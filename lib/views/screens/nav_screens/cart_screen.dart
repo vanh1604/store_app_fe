@@ -164,42 +164,46 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                     shrinkWrap: true,
                     itemCount: cartData.length,
                     itemBuilder: (context, index) {
-                      final cartItem = cartData[index];
+                      final cartItem = cartData.values.toList()[index];
                       return Card(
                         child: SizedBox(
                           height: 200,
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               SizedBox(
                                 height: 100,
                                 width: 100,
                                 child: Image.network(
-                                  cartItem!.image[0],
+                                  cartItem.image[0],
                                   fit: BoxFit.cover,
+                                  // Handle network errors (e.g., 404s)
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(Icons.broken_image),
                                 ),
                               ),
+                              const SizedBox(width: 16),
                               Column(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceEvenly,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    cartItem.productName,
+                                    cartItem!.productName,
                                     style: GoogleFonts.lato(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                   Text(
-                                    cartItem.category,
+                                    cartItem!.category,
                                     style: GoogleFonts.roboto(
                                       fontSize: 13,
                                       color: Colors.grey,
                                     ),
                                   ),
                                   Text(
-                                    "\$${cartItem.price.toStringAsFixed(2)}",
+                                    "\$${cartItem!.price.toStringAsFixed(2)}",
                                     style: GoogleFonts.lato(
                                       fontSize: 15,
                                       color: Colors.pink,
@@ -224,7 +228,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                             IconButton(
                                               onPressed: () {
                                                 _cartProvider.DecremantQuantity(
-                                                  cartItem.productId,
+                                                  cartItem!.productId,
                                                 );
                                               },
                                               icon: Icon(
@@ -233,7 +237,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                               ),
                                             ),
                                             Text(
-                                              cartItem.quantity.toString(),
+                                              cartItem!.quantity.toString(),
                                               style: GoogleFonts.lato(
                                                 color: Colors.white,
                                                 fontSize: 16,
