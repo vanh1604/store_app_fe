@@ -12,6 +12,7 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 }
 
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
+  String selectedPaymentMethod = 'stripe';
   @override
   Widget build(BuildContext context) {
     final cartData = ref.watch(cartProvider);
@@ -263,7 +264,64 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   },
                 ),
               ),
+              SizedBox(height: 10),
+              Text(
+                'Choose Payment Method',
+                style: GoogleFonts.montserrat(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              RadioListTile<String>(
+                title: Text(
+                  'Stripe',
+                  style: GoogleFonts.montserrat(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+                value: 'stripe',
+                groupValue: selectedPaymentMethod,
+                onChanged: (value) {
+                  setState(() {
+                    selectedPaymentMethod = value!;
+                  });
+                },
+              ),
+              RadioListTile(
+                title: Text(
+                  'Cash on Delivery',
+                  style: GoogleFonts.montserrat(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+                value: 'cashOnDelivery',
+                groupValue: selectedPaymentMethod,
+                onChanged: (value) {
+                  setState(() {
+                    selectedPaymentMethod = value!;
+                  });
+                },
+              ),
             ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: Container(
+        width: 338,
+        height: 58,
+        decoration: BoxDecoration(
+          color: Color(0xFF3854EE),
+          borderRadius: BorderRadius.circular(15),
+        ),
+
+        child: Text(
+          selectedPaymentMethod == "Stripe" ? 'Pay Now' : 'Place Order',
+          style: GoogleFonts.montserrat(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
           ),
         ),
       ),
