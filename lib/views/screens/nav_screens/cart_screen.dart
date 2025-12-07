@@ -190,7 +190,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    cartItem!.productName,
+                                    cartItem.productName,
                                     style: GoogleFonts.lato(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
@@ -215,7 +215,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                     children: [
                                       Container(
                                         height: 40,
-                                        width: 120,
+                                        width: 110,
                                         decoration: BoxDecoration(
                                           color: Color.fromARGB(
                                             255,
@@ -228,8 +228,8 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                           children: [
                                             IconButton(
                                               onPressed: () {
-                                                _cartProvider.DecremantQuantity(
-                                                  cartItem!.productId,
+                                                _cartProvider.DecrementQuantity(
+                                                  cartItem.productId,
                                                 );
                                               },
                                               icon: Icon(
@@ -238,7 +238,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                               ),
                                             ),
                                             Text(
-                                              cartItem!.quantity.toString(),
+                                              cartItem.quantity.toString(),
                                               style: GoogleFonts.lato(
                                                 color: Colors.white,
                                                 fontSize: 16,
@@ -247,7 +247,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                             ),
                                             IconButton(
                                               onPressed: () {
-                                                _cartProvider.IncremantQuantity(
+                                                _cartProvider.IncrementQuantity(
                                                   cartItem.productId,
                                                 );
                                               },

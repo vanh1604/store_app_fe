@@ -56,17 +56,55 @@ class CartNotifier extends StateNotifier<Map<String, Cart>> {
     print(state);
   }
 
-  void IncremantQuantity(String productId) {
+  void IncrementQuantity(String productId) {
     if (state.containsKey(productId)) {
-      state[productId]!.quantity + 1;
-      state = {...state};
+      // 1. Lấy item hiện tại
+      final currentItem = state[productId]!;
+
+      // 2. Cập nhật state bằng cách tạo object Cart mới với quantity + 1
+      state = {
+        ...state,
+        productId: Cart(
+          productName: currentItem.productName,
+          quantity: currentItem.quantity + 1, // Tăng số lượng ở đây
+          price: currentItem.price,
+          image: currentItem.image,
+          category: currentItem.category,
+          vendorId: currentItem.vendorId,
+          productId: currentItem.productId,
+          productDescription: currentItem.productDescription,
+          productQuantity: currentItem.productQuantity,
+          fullName: currentItem.fullName,
+        ),
+      };
     }
   }
 
-  void DecremantQuantity(String productId) {
+  void DecrementQuantity(String productId) {
     if (state.containsKey(productId)) {
-      state[productId]!.quantity - 1;
-      state = {...state};
+      final currentItem = state[productId]!;
+
+      // Kiểm tra để không giảm xuống dưới 1
+      if (currentItem.quantity > 1) {
+        state = {
+          ...state,
+          productId: Cart(
+            productName: currentItem.productName,
+            quantity: currentItem.quantity - 1, // Giảm số lượng ở đây
+            price: currentItem.price,
+            image: currentItem.image,
+            category: currentItem.category,
+            vendorId: currentItem.vendorId,
+            productId: currentItem.productId,
+            productDescription: currentItem.productDescription,
+            productQuantity: currentItem.productQuantity,
+            fullName: currentItem.fullName,
+          ),
+        };
+      } else {
+        // Tuỳ chọn: Nếu số lượng là 1 mà bấm trừ thì xoá luôn sản phẩm
+        removeProduct(productId);
+      }
     }
   }
 
