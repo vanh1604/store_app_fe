@@ -6,6 +6,7 @@ import 'package:vanh_store_app/controllers/order_controller.dart';
 
 import 'package:vanh_store_app/provider/cart_provider.dart';
 import 'package:vanh_store_app/provider/user_provider.dart';
+import 'package:vanh_store_app/views/detail/screens/shipping_address_screen.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({super.key});
@@ -30,7 +31,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               InkWell(
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ShippingAddressScreen(),
+                    ),
+                  );
+                },
                 child: SizedBox(
                   width: 335,
                   height: 74,
@@ -317,7 +325,16 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         padding: const EdgeInsets.all(8.0),
         child: ref.read(userProvider)!.state == ''
             ? TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return ShippingAddressScreen();
+                      },
+                    ),
+                  );
+                },
                 child: Text(
                   'Please Enter Shipping Address',
                   style: GoogleFonts.montserrat(
