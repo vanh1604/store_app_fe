@@ -106,12 +106,12 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       ),
                       child: SizedBox(
                         height: 300,
-                        // Dùng trực tiếp biến _productData ở đây
+
                         child: PageView.builder(
                           itemCount: _productData.images.length,
                           itemBuilder: (context, index) {
                             return Image.network(
-                              _productData.images![index],
+                              _productData.images[index],
                               fit: BoxFit.cover,
                             );
                           },

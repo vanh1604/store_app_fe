@@ -197,14 +197,14 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                     ),
                                   ),
                                   Text(
-                                    cartItem!.category,
+                                    cartItem.category,
                                     style: GoogleFonts.roboto(
                                       fontSize: 13,
                                       color: Colors.grey,
                                     ),
                                   ),
                                   Text(
-                                    "\$${cartItem!.price.toStringAsFixed(2)}",
+                                    "\$${cartItem.price.toStringAsFixed(2)}",
                                     style: GoogleFonts.lato(
                                       fontSize: 15,
                                       color: Colors.pink,

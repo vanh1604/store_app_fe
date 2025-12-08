@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:vanh_store_app/global_variables.dart';
 import 'package:vanh_store_app/models/order.dart';
@@ -14,7 +13,7 @@ class OrderController {
     required String locality,
     required String productName,
     required int quantity,
-    required int productPrice,
+    required double productPrice,
     required String category,
     required String image,
     required String buyerId,

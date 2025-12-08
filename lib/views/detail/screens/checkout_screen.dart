@@ -2,7 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:vanh_store_app/controllers/order_controller.dart';
+
 import 'package:vanh_store_app/provider/cart_provider.dart';
+import 'package:vanh_store_app/provider/user_provider.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({super.key});
@@ -13,9 +16,11 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   String selectedPaymentMethod = 'stripe';
+  final OrderController orderController = OrderController();
   @override
   Widget build(BuildContext context) {
     final cartData = ref.watch(cartProvider);
+    final _cartProvider = ref.read(cartProvider.notifier);
     return Scaffold(
       appBar: AppBar(title: const Text('Checkout')),
       body: Padding(
@@ -308,22 +313,71 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: Container(
-        width: 338,
-        height: 58,
-        decoration: BoxDecoration(
-          color: Color(0xFF3854EE),
-          borderRadius: BorderRadius.circular(15),
-        ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: ref.read(userProvider)!.state == ''
+            ? TextButton(
+                onPressed: () {},
+                child: Text(
+                  'Please Enter Shipping Address',
+                  style: GoogleFonts.montserrat(
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.7,
+                    fontSize: 17,
+                  ),
+                ),
+              )
+            : InkWell(
+                onTap: () async {
+                  if (selectedPaymentMethod == "stripe") {
+                  } else {
+                    await Future.forEach(_cartProvider.getCartItems.entries, (
+                      entry,
+                    ) {
+                      var item = entry.value;
+                      orderController.uploadOrders(
+                        id: '',
+                        fullName: ref.read(userProvider)!.fullName,
+                        email: ref.read(userProvider)!.email,
+                        state: 'united state',
+                        city: 'New York',
+                        locality: 'test locality',
+                        productName: item.productName,
+                        quantity: item.quantity,
+                        productPrice: item.price,
+                        category: item.category,
+                        image: item.image[0],
+                        buyerId: ref.read(userProvider)!.id,
+                        vendorId: item.vendorId,
+                        processing: true,
+                        delivered: false,
+                        context: context,
+                      );
+                    });
+                  }
+                },
+                child: Container(
+                  width: 338,
+                  height: 58,
+                  decoration: BoxDecoration(
+                    color: Color(0xFF3854EE),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
 
-        child: Text(
-          selectedPaymentMethod == "Stripe" ? 'Pay Now' : 'Place Order',
-          style: GoogleFonts.montserrat(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
+                  child: Center(
+                    child: Text(
+                      selectedPaymentMethod == "Stripe"
+                          ? 'Pay Now'
+                          : 'Place Order',
+                      style: GoogleFonts.montserrat(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
       ),
     );
   }

@@ -9,7 +9,7 @@ class Order {
   final String locality;
   final String productName;
   final int quantity;
-  final int productPrice;
+  final double productPrice;
   final String category;
   final String image;
   final String buyerId;
