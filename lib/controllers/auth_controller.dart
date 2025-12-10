@@ -110,4 +110,38 @@ class AuthController {
       showSnackBar(context, 'Đã xảy ra lỗi: $e');
     }
   }
+
+  Future<void> updateUserLocation({
+    required BuildContext context,
+    required String id,
+    required String state,
+    required String city,
+    required String locality,
+  }) async {
+    try {
+      final res = await http.put(
+        Uri.parse('$uri/api/users/$id'),
+        body: jsonEncode({'state': state, 'city': city, 'locality': locality}),
+        headers: <String, String>{
+          "Content-Type": "application/json;charset=UTF-8",
+        },
+      );
+      manageHttpResponse(
+        res: res,
+        context: context,
+        onSuccess: () async {
+          final updatedUserJson = jsonEncode(jsonDecode(res.body));
+          providerContainer
+              .read(userProvider.notifier)
+              .setUser(updatedUserJson);
+          SharedPreferences preferences = await SharedPreferences.getInstance();
+          await preferences.setString('user', updatedUserJson);
+          showSnackBar(context, 'Location updated successfully');
+        },
+      );
+    } catch (e) {
+      debugPrint('Đã xảy ra lỗi khi cập nhật vị trí: $e');
+      showSnackBar(context, 'Đã xảy ra lỗi: $e');
+    }
+  }
 }
