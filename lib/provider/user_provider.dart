@@ -24,6 +24,25 @@ class UserProvider extends StateNotifier<User?> {
   void signOut() {
     state = null;
   }
+
+  void updateUser({
+    required String state,
+    required String city,
+    required String locality,
+  }) {
+    if (this.state != null) {
+      this.state = User(
+        id: this.state!.id,
+        fullName: this.state!.fullName,
+        state: state,
+        city: city,
+        locality: locality,
+        email: this.state!.email,
+        password: this.state!.password,
+        token: this.state!.token,
+      );
+    }
+  }
 }
 
 final userProvider = StateNotifierProvider<UserProvider, User?>(

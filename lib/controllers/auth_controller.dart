@@ -58,8 +58,8 @@ class AuthController {
   Future<void> signInUser({
     required BuildContext context,
     required String email,
-
     required String password,
+    required WidgetRef ref,
   }) async {
     try {
       http.Response res = await http.post(
@@ -76,8 +76,12 @@ class AuthController {
           SharedPreferences preferences = await SharedPreferences.getInstance();
           String token = jsonDecode(res.body)['token'];
           await preferences.setString('auth-token', token);
-          final userJson = jsonEncode(jsonDecode(res.body)['user']);
-          providerContainer.read(userProvider.notifier).setUser(userJson);
+          final userJsonMap = jsonDecode(res.body)['user'];
+          userJsonMap['token'] = token;
+          final userJson = jsonEncode(userJsonMap);
+          ref.read(userProvider.notifier).setUser(userJson);
+          await preferences.setString('user', userJson);
+          ref.read(userProvider.notifier).setUser(userJson);
           await preferences.setString('user', userJson);
           Navigator.pushAndRemoveUntil(
             context,
@@ -117,6 +121,7 @@ class AuthController {
     required String state,
     required String city,
     required String locality,
+    required WidgetRef ref,
   }) async {
     try {
       final res = await http.put(
@@ -126,16 +131,17 @@ class AuthController {
           "Content-Type": "application/json;charset=UTF-8",
         },
       );
+
       manageHttpResponse(
         res: res,
         context: context,
         onSuccess: () async {
-          final updatedUserJson = jsonEncode(jsonDecode(res.body));
-          providerContainer
-              .read(userProvider.notifier)
-              .setUser(updatedUserJson);
+          final responseMap = jsonDecode(res.body);
+          final userMap = responseMap['updatedUser'];
+          final correctUserJson = jsonEncode(userMap);
+          ref.read(userProvider.notifier).setUser(correctUserJson);
           SharedPreferences preferences = await SharedPreferences.getInstance();
-          await preferences.setString('user', updatedUserJson);
+          await preferences.setString('user', correctUserJson);
           showSnackBar(context, 'Location updated successfully');
         },
       );

@@ -18,10 +18,13 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   String selectedPaymentMethod = 'stripe';
   final OrderController orderController = OrderController();
+
   @override
   Widget build(BuildContext context) {
     final cartData = ref.watch(cartProvider);
     final _cartProvider = ref.read(cartProvider.notifier);
+    final user = ref.watch(userProvider);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Checkout')),
       body: Padding(
@@ -93,25 +96,43 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                       const SizedBox(height: 4),
                                       Align(
                                         alignment: Alignment.centerLeft,
-                                        child: Text(
-                                          'United state',
-                                          style: GoogleFonts.lato(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                            letterSpacing: 1.3,
-                                          ),
-                                        ),
+                                        child: user!.state.isNotEmpty
+                                            ? Text(
+                                                user.state,
+                                                style: GoogleFonts.lato(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold,
+                                                  letterSpacing: 1.3,
+                                                ),
+                                              )
+                                            : Text(
+                                                'No address added',
+                                                style: GoogleFonts.lato(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold,
+                                                  letterSpacing: 1.3,
+                                                ),
+                                              ),
                                       ),
                                       Align(
                                         alignment: Alignment.centerLeft,
-                                        child: Text(
-                                          'Enter city',
-                                          style: GoogleFonts.lato(
-                                            color: const Color(0xFF7F808C),
-                                            fontWeight: FontWeight.w500,
-                                            fontSize: 12,
-                                          ),
-                                        ),
+                                        child: user.city.isNotEmpty
+                                            ? Text(
+                                                user.city,
+                                                style: GoogleFonts.lato(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold,
+                                                  letterSpacing: 1.3,
+                                                ),
+                                              )
+                                            : Text(
+                                                'No city added',
+                                                style: GoogleFonts.lato(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold,
+                                                  letterSpacing: 1.3,
+                                                ),
+                                              ),
                                       ),
                                     ],
                                   ),
@@ -323,7 +344,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: ref.read(userProvider)!.state == ''
+        child: user.state.isEmpty
             ? TextButton(
                 onPressed: () {
                   Navigator.push(
