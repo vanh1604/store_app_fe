@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 import 'package:vanh_store_app/global_variables.dart';
 import 'package:vanh_store_app/models/order.dart';
@@ -56,6 +58,27 @@ class OrderController {
       );
     } catch (e) {
       showSnackBar(context, e.toString());
+    }
+  }
+
+  Future<List<Order>> loadOrders({required String buyerId}) async {
+    try {
+      http.Response res = await http.get(
+        Uri.parse("$uri/api/orders/$buyerId"),
+        headers: <String, String>{
+          "Content-Type": "application/json; charset=UTF-8",
+        },
+      );
+      if (res.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(res.body);
+        List<Order> orders = data.map((order) => Order.fromMap(order)).toList();
+        return orders;
+      } else {
+        throw Exception("Failed to load orders");
+      }
+    } catch (e) {
+      print("Error: $e");
+      throw Exception('An error occurred while loading orders: $e');
     }
   }
 }
