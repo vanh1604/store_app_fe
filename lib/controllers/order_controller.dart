@@ -70,8 +70,10 @@ class OrderController {
         },
       );
       if (res.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(res.body);
+        final Map<String, dynamic> responseData = jsonDecode(res.body);
+        final List<dynamic> data = responseData['orders'];
         List<Order> orders = data.map((order) => Order.fromMap(order)).toList();
+
         return orders;
       } else {
         throw Exception("Failed to load orders");
