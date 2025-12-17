@@ -1,51 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vanh_store_app/controllers/product_controller.dart';
 import 'package:vanh_store_app/models/product.dart';
+import 'package:vanh_store_app/provider/product_provider.dart';
 import 'package:vanh_store_app/views/screens/nav_screens/widgets/product_item_widget.dart';
 
-class PopularProductsWidget extends StatefulWidget {
+class PopularProductsWidget extends ConsumerStatefulWidget {
   const PopularProductsWidget({super.key});
 
   @override
-  _PopularProductsWidgetState createState() => _PopularProductsWidgetState();
+  ConsumerState<PopularProductsWidget> createState() =>
+      _PopularProductsWidgetState();
 }
 
-class _PopularProductsWidgetState extends State<PopularProductsWidget> {
-  late Future<List<Product>> _popularProductsFuture;
-
+class _PopularProductsWidgetState extends ConsumerState<PopularProductsWidget> {
   @override
   void initState() {
     super.initState();
-    _popularProductsFuture = ProductController().loadPopularProducts();
+    fetchPopularProducts();
+  }
+
+  Future<void> fetchPopularProducts() async {
+    final ProductController productController = ProductController();
+    try {
+      final products = await productController.loadPopularProducts();
+      ref.read(productProvider.notifier).setProducts(products);
+    } catch (e) {
+      print(e);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Product>>(
-      future: _popularProductsFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(child: Text('No popular products found.'));
-        } else {
-          List<Product> popularProducts = snapshot.data!;
-          // You can build your UI with the popularProducts list here
-          return SizedBox(
-            height: 250,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: popularProducts.length,
-              itemBuilder: (context, index) {
-                Product product = popularProducts[index];
-                return ProductItemWidget(product: product);
-              },
-            ),
-          );
-        }
-      },
+    final popularProducts = ref.watch(productProvider);
+    return SizedBox(
+      height: 250,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: popularProducts.length,
+        itemBuilder: (context, index) {
+          Product product = popularProducts[index];
+          return ProductItemWidget(product: product);
+        },
+      ),
     );
   }
 }

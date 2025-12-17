@@ -1,26 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vanh_store_app/controllers/banner_controller.dart';
 import 'package:vanh_store_app/models/banner.dart';
+import 'package:vanh_store_app/provider/banner_provider.dart';
 
-class BannerWidget extends StatefulWidget {
+class BannerWidget extends ConsumerStatefulWidget {
   const BannerWidget({super.key});
 
   @override
-  _BannerWidgetState createState() => _BannerWidgetState();
+  ConsumerState<BannerWidget> createState() => _BannerWidgetState();
 }
 
-class _BannerWidgetState extends State<BannerWidget> {
+class _BannerWidgetState extends ConsumerState<BannerWidget> {
   late Future<List<BannerModel>> _bannersFuture;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    _bannersFuture = BannerController().loadBanners();
+    fetchBanners();
+  }
+
+  Future<void> fetchBanners() async {
+    final bannerController = BannerController();
+    try {
+      final banners = await bannerController.loadBanners();
+      ref.read(bannerProvider.notifier).setBanners(banners);
+    } catch (e) {
+      print(e);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final banners = ref.watch(bannerProvider);
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Container(
@@ -30,33 +42,16 @@ class _BannerWidgetState extends State<BannerWidget> {
           color: Color(0xFFF7F7F7),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: FutureBuilder(
-          future: _bannersFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text("Error: ${snapshot.error}"));
-            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Center(child: Text("No banners available"));
-            } else {
-              List<BannerModel> banners = snapshot.data!;
-              return PageView.builder(
-                itemCount: banners.length,
-                itemBuilder: (context, index) {
-                  return Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    child: Image.network(
-                      banners[index].image,
-                      fit: BoxFit.cover,
-                    ),
-                  );
-                },
-              );
-            }
+        child: PageView.builder(
+          itemCount: banners.length,
+          itemBuilder: (context, index) {
+            return Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
+                borderRadius: BorderRadius.circular(5),
+              ),
+              child: Image.network(banners[index].image, fit: BoxFit.cover),
+            );
           },
         ),
       ),

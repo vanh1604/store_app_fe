@@ -73,7 +73,6 @@ class OrderController {
         final Map<String, dynamic> responseData = jsonDecode(res.body);
         final List<dynamic> data = responseData['orders'];
         List<Order> orders = data.map((order) => Order.fromMap(order)).toList();
-
         return orders;
       } else {
         throw Exception("Failed to load orders");
