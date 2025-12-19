@@ -18,7 +18,6 @@ class OrderScreen extends ConsumerStatefulWidget {
 class _OrderScreenState extends ConsumerState<OrderScreen> {
   Future<void> _fetchOrderData() async {
     final user = ref.read(userProvider);
-    print(jsonDecode(user!.toJson()));
     if (user != null) {
       final OrderController orderController = OrderController();
       try {
@@ -27,6 +26,16 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
       } catch (e) {
         print("Error: $e");
       }
+    }
+  }
+
+  Future<void> deleteOrder({required String orderId}) async {
+    try {
+      final OrderController orderController = OrderController();
+      await orderController.deleteOrder(orderId: orderId, context: context);
+      _fetchOrderData();
+    } catch (e) {
+      print("Error: $e");
     }
   }
 
@@ -301,7 +310,9 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
                                       left: 298,
                                       top: 115,
                                       child: InkWell(
-                                        onTap: () {},
+                                        onTap: () {
+                                          deleteOrder(orderId: order.id);
+                                        },
                                         child: Image.asset(
                                           'assets/icons/delete.png',
                                           width: 20,

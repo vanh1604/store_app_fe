@@ -64,7 +64,7 @@ class Order {
       locality: map['locality'],
       productName: map['productName'],
       quantity: map['quantity'],
-      productPrice: map['productPrice'],
+      productPrice: (map['productPrice'] as num).toDouble(),
       category: map['category'],
       image: map['image'],
       buyerId: map['buyerId'],
