@@ -1,5 +1,7 @@
+import 'package:custom_rating_bar/custom_rating_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:vanh_store_app/controllers/product_review_controller.dart';
 import 'package:vanh_store_app/models/order.dart';
 
 class OrderDetailScreen extends StatefulWidget {
@@ -11,6 +13,10 @@ class OrderDetailScreen extends StatefulWidget {
 }
 
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
+  final TextEditingController _reviewController = TextEditingController();
+  final ProductReviewController _productReviewController =
+      ProductReviewController();
+  double rating = 0.0;
   @override
   Widget build(BuildContext context) {
     final order = widget.order;
@@ -245,7 +251,53 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   ),
                   order.delivered == true
                       ? TextButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title: Text('Leave a Review'),
+                                  content: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      TextFormField(
+                                        controller: _reviewController,
+                                        decoration: InputDecoration(
+                                          labelText: 'Your Review',
+                                        ),
+                                      ),
+                                      RatingBar(
+                                        filledIcon: Icons.star,
+                                        emptyIcon: Icons.star_border,
+                                        onRatingChanged: (value) {
+                                          rating = value;
+                                        },
+                                        initialRating: 3,
+                                        maxRating: 5,
+                                      ),
+                                    ],
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        final review = _reviewController.text;
+                                        _productReviewController.uploadReview(
+                                          productId: order.id,
+                                          buyerId: order.buyerId,
+                                          rating: rating,
+                                          review: review,
+                                          fullName: order.fullName,
+                                          email: order.email,
+                                          context: context,
+                                        );
+                                      },
+                                      child: Text('Submit'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
                           child: Text(
                             'Leave a Review',
                             style: GoogleFonts.montserrat(

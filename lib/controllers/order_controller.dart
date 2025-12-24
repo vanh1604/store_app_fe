@@ -64,7 +64,7 @@ class OrderController {
   Future<List<Order>> loadOrders({required String buyerId}) async {
     try {
       http.Response res = await http.get(
-        Uri.parse("$uri/api/orders/$buyerId"),
+        Uri.parse("$uri/api/orders/buyers/$buyerId"),
         headers: <String, String>{
           "Content-Type": "application/json; charset=UTF-8",
         },
