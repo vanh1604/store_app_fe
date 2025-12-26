@@ -1,0 +1,25 @@
+class Favorite {
+  final String productName;
+  int quantity;
+  final double price;
+  final List<String> image;
+  final String category;
+  final String vendorId;
+  final String productId;
+  final String productDescription;
+  final int productQuantity;
+  final String fullName;
+
+  Favorite({
+    required this.productName,
+    required this.quantity,
+    required this.price,
+    required this.image,
+    required this.category,
+    required this.vendorId,
+    required this.productId,
+    required this.productDescription,
+    required this.productQuantity,
+    required this.fullName,
+  });
+}

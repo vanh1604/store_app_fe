@@ -15,7 +15,6 @@ class ProductController {
 
       if (res.statusCode == 200) {
         final List<dynamic> data = jsonDecode(res.body);
-
         List<Product> products = data
             .map((product) => Product.fromMap(product))
             .toList();
@@ -64,6 +63,7 @@ class ProductController {
       );
 
       if (res.statusCode == 200) {
+        print(res.body);
         final Map<String, dynamic> data = jsonDecode(res.body);
         return Product.fromMap(data);
       } else {
