@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vanh_store_app/controllers/auth_controller.dart';
 import 'package:vanh_store_app/provider/user_provider.dart';
 
