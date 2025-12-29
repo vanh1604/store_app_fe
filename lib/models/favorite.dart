@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class Favorite {
   final String productName;
   int quantity;
@@ -22,4 +24,35 @@ class Favorite {
     required this.productQuantity,
     required this.fullName,
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'productName': productName,
+      'quantity': quantity,
+      'price': price,
+      'image': image,
+      'category': category,
+      'vendorId': vendorId,
+      'productId': productId,
+      'productDescription': productDescription,
+      'productQuantity': productQuantity,
+      'fullName': fullName,
+    };
+  }
+
+  factory Favorite.fromMap(Map<String, dynamic> map) {
+    return Favorite(
+      productName: map['productName'],
+      quantity: map['quantity'],
+      price: map['price'],
+      image: List<String>.from(map['image']),
+      category: map['category'],
+      vendorId: map['vendorId'],
+      productId: map['productId'],
+      productDescription: map['productDescription'],
+      productQuantity: map['productQuantity'],
+      fullName: map['fullName'],
+    );
+  }
+  String toJson() => json.encode(toMap());
 }

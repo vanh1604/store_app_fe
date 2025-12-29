@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vanh_store_app/models/favorite.dart';
 
 final favoriteProvider =
@@ -7,7 +10,37 @@ final favoriteProvider =
     );
 
 class FavoriteNotfier extends StateNotifier<Map<String, Favorite>> {
-  FavoriteNotfier() : super({});
+  FavoriteNotfier() : super({}) {
+    _loadFavorites();
+  }
+
+  Future<void> _loadFavorites() async {
+    final prefs = await SharedPreferences.getInstance();
+    final favoriteString = prefs.getString("favorites");
+    if (favoriteString != null) {
+      try {
+        final Map<String, dynamic> favoriteMap = jsonDecode(favoriteString);
+        final Map<String, Favorite> loadedFavorites = {};
+        favoriteMap.forEach((key, value) {
+          if (value is Map<String, dynamic>) {
+            loadedFavorites[key] = Favorite.fromMap(value);
+          }
+        });
+        state = loadedFavorites;
+      } catch (e) {
+        // Nếu có lỗi (dữ liệu cũ không hợp lệ), xóa và reset
+        await prefs.remove("favorites");
+        state = {};
+      }
+    }
+  }
+
+  Future<void> _saveFavorites() async {
+    final prefs = await SharedPreferences.getInstance();
+    final favoriteMap = state.map((key, value) => MapEntry(key, value.toMap()));
+    final favoriteString = jsonEncode(favoriteMap);
+    await prefs.setString("favorites", favoriteString);
+  }
 
   void addProductToFavorite({
     required String productName,
@@ -34,12 +67,14 @@ class FavoriteNotfier extends StateNotifier<Map<String, Favorite>> {
       fullName: fullName,
     );
     state = {...state};
+    _saveFavorites();
   }
 
   void removeFavoriteItem(String productId) {
     if (state.containsKey(productId)) {
       state.remove(productId);
       state = {...state};
+      _saveFavorites();
     }
   }
 
