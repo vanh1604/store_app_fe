@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vanh_store_app/models/cart.dart';
 
 final cartProvider = StateNotifierProvider<CartNotifier, Map<String, Cart>>(
@@ -6,7 +9,37 @@ final cartProvider = StateNotifierProvider<CartNotifier, Map<String, Cart>>(
 );
 
 class CartNotifier extends StateNotifier<Map<String, Cart>> {
-  CartNotifier() : super({});
+  CartNotifier() : super({}) {
+    _loadCartItems();
+  }
+
+  Future<void> _savedCartItems() async {
+    final prefs = await SharedPreferences.getInstance();
+    final cartMap = state.map((key, value) => MapEntry(key, value.toMap()));
+    final cartString = jsonEncode(cartMap);
+    await prefs.setString("cart", cartString);
+  }
+
+  Future<void> _loadCartItems() async {
+    final prefs = await SharedPreferences.getInstance();
+    final cartString = prefs.getString("cart");
+    if (cartString != null) {
+      try {
+        final Map<String, dynamic> cartMap = jsonDecode(cartString);
+        final Map<String, Cart> loadedCart = {};
+        cartMap.forEach((key, value) {
+          if (value is Map<String, dynamic>) {
+            loadedCart[key] = Cart.fromMap(value);
+          }
+        });
+        state = loadedCart;
+      } catch (e) {
+        // Nếu có lỗi (dữ liệu cũ không hợp lệ), xóa và reset
+        await prefs.remove("cart");
+        state = {};
+      }
+    }
+  }
 
   void addProductToCart({
     required String productName,
@@ -36,6 +69,7 @@ class CartNotifier extends StateNotifier<Map<String, Cart>> {
           fullName: state[productId]!.fullName,
         ),
       };
+      _savedCartItems();
     } else {
       state = {
         ...state,
@@ -52,8 +86,8 @@ class CartNotifier extends StateNotifier<Map<String, Cart>> {
           fullName: fullName,
         ),
       };
+      _savedCartItems();
     }
-    print(state);
   }
 
   void IncrementQuantity(String productId) {
@@ -77,6 +111,7 @@ class CartNotifier extends StateNotifier<Map<String, Cart>> {
           fullName: currentItem.fullName,
         ),
       };
+      _savedCartItems();
     }
   }
 
@@ -101,9 +136,11 @@ class CartNotifier extends StateNotifier<Map<String, Cart>> {
             fullName: currentItem.fullName,
           ),
         };
+        _savedCartItems();
       } else {
         // Tuỳ chọn: Nếu số lượng là 1 mà bấm trừ thì xoá luôn sản phẩm
         removeProduct(productId);
+        _savedCartItems();
       }
     }
   }
@@ -112,6 +149,7 @@ class CartNotifier extends StateNotifier<Map<String, Cart>> {
     if (state.containsKey(productId)) {
       state.remove(productId);
       state = {...state};
+      _savedCartItems();
     }
   }
 
