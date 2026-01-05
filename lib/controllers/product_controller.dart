@@ -63,7 +63,6 @@ class ProductController {
       );
 
       if (res.statusCode == 200) {
-        print(res.body);
         final Map<String, dynamic> data = jsonDecode(res.body);
         return Product.fromMap(data);
       } else {
@@ -72,6 +71,30 @@ class ProductController {
     } catch (e) {
       print("Error: $e");
       throw Exception('An error occurred while loading products by id: $e');
+    }
+  }
+
+  Future<List<Product>> relatedProducts(String productId) async {
+    try {
+      http.Response res = await http.get(
+        Uri.parse("$uri/api/relatedproducts/$productId"),
+        headers: <String, String>{
+          "Content-Type": "application/json; charset=UTF-8",
+        },
+      );
+
+      if (res.statusCode == 200) {
+        Map<String, dynamic> responseData = jsonDecode(res.body);
+        List<dynamic> data = responseData["relatedProducts"] ?? [];
+        List<Product> relatedProducts = data
+            .map((product) => Product.fromMap(product))
+            .toList();
+        return relatedProducts;
+      } else {
+        throw Exception("Failed to load products");
+      }
+    } catch (e) {
+      throw Exception('An error occurred while loading products: $e');
     }
   }
 }

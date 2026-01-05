@@ -157,7 +157,7 @@ class _ShippingAddressScreenState extends ConsumerState<ShippingAddressScreen> {
                   )
                   .whenComplete(() {
                     updateUser.updateUser(
-                      state: _stateController.text,
+                      userState: _stateController.text,
                       city: _cityController.text,
                       locality: _localityController.text,
                     );

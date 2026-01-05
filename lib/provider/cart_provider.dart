@@ -1,16 +1,19 @@
 import 'dart:convert';
 
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vanh_store_app/models/cart.dart';
 
-final cartProvider = StateNotifierProvider<CartNotifier, Map<String, Cart>>(
-  (ref) => CartNotifier(),
-);
+final cartProvider = NotifierProvider<CartNotifier, Map<String, Cart>>(() {
+  return CartNotifier();
+});
 
-class CartNotifier extends StateNotifier<Map<String, Cart>> {
-  CartNotifier() : super({}) {
+class CartNotifier extends Notifier<Map<String, Cart>> {
+  @override
+  Map<String, Cart> build() {
+    // Load cart items when provider is initialized
     _loadCartItems();
+    return {};
   }
 
   Future<void> _savedCartItems() async {

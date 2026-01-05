@@ -6,6 +6,7 @@ import 'package:vanh_store_app/controllers/product_controller.dart';
 import 'package:vanh_store_app/models/product.dart';
 import 'package:vanh_store_app/provider/cart_provider.dart';
 import 'package:vanh_store_app/provider/favorite_provider.dart';
+import 'package:vanh_store_app/provider/related_product_provider.dart';
 import 'package:vanh_store_app/services/manage_http_response.dart';
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
@@ -52,6 +53,9 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
           _isLoading = false;
         });
         _animationController.forward();
+
+        // Fetch related products
+        _fetchRelatedProducts();
       }
     } catch (e) {
       debugPrint("Lỗi load sản phẩm: $e");
@@ -60,6 +64,17 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
           _isLoading = false;
         });
       }
+    }
+  }
+
+  Future<void> _fetchRelatedProducts() async {
+    try {
+      final relatedProducts = await ProductController().relatedProducts(widget.productId!);
+      if (mounted) {
+        ref.read(relatedProductProvider.notifier).setProducts(relatedProducts);
+      }
+    } catch (e) {
+      debugPrint("Lỗi load related products: $e");
     }
   }
 
@@ -181,6 +196,7 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
                   _buildQuantitySelector(),
                   _buildVendorInfo(),
                   _buildDescriptionSection(),
+                  _buildRelatedProductsSection(),
                   SizedBox(height: 100),
                 ],
               ),
@@ -618,6 +634,217 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildRelatedProductsSection() {
+    final relatedProducts = ref.watch(relatedProductProvider);
+
+    if (relatedProducts.isEmpty) {
+      return SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(20, 20, 20, 12),
+          child: Row(
+            children: [
+              Text(
+                'You May Also Like',
+                style: GoogleFonts.quicksand(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1A1A1A),
+                ),
+              ),
+              SizedBox(width: 8),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Color(0xFF3C55EF).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${relatedProducts.length}',
+                  style: GoogleFonts.quicksand(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF3C55EF),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: 280,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            itemCount: relatedProducts.length,
+            itemBuilder: (context, index) {
+              final product = relatedProducts[index];
+              return _buildRelatedProductCard(product);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRelatedProductCard(Product product) {
+    final favoriteProviderData = ref.read(favoriteProvider.notifier);
+    final isFavorite = favoriteProviderData.getFavorite.containsKey(product.id);
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductDetailScreen(productId: product.id),
+          ),
+        );
+      },
+      child: Container(
+        width: 180,
+        margin: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 10,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Product Image
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                  child: Image.network(
+                    product.images.isNotEmpty ? product.images[0] : '',
+                    height: 140,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      height: 140,
+                      color: Colors.grey[200],
+                      child: Icon(Icons.image_not_supported, color: Colors.grey[400]),
+                    ),
+                  ),
+                ),
+                // Favorite Button
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 8,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: IconButton(
+                      padding: EdgeInsets.all(8),
+                      constraints: BoxConstraints(),
+                      icon: Icon(
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: isFavorite ? Colors.red : Colors.grey[600],
+                        size: 18,
+                      ),
+                      onPressed: () {
+                        favoriteProviderData.addProductToFavorite(
+                          productName: product.name,
+                          quantity: 1,
+                          price: product.price,
+                          image: product.images,
+                          category: product.category,
+                          vendorId: product.vendorId,
+                          productId: product.id,
+                          productDescription: product.description,
+                          productQuantity: product.quantity,
+                          fullName: product.fullName,
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            // Product Info
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Product Name
+                    Text(
+                      product.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.quicksand(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1A1A1A),
+                        height: 1.2,
+                      ),
+                    ),
+                    Spacer(),
+                    // Rating
+                    if (product.totalRatings > 0)
+                      Row(
+                        children: [
+                          Icon(Icons.star, color: Color(0xFFFFB800), size: 14),
+                          SizedBox(width: 4),
+                          Text(
+                            product.averageRating.toStringAsFixed(1),
+                            style: GoogleFonts.quicksand(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            '(${product.totalRatings})',
+                            style: GoogleFonts.quicksand(
+                              fontSize: 11,
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                        ],
+                      ),
+                    SizedBox(height: 4),
+                    // Price
+                    Text(
+                      '\$${product.price.toStringAsFixed(2)}',
+                      style: GoogleFonts.quicksand(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF3C55EF),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

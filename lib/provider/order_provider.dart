@@ -1,13 +1,17 @@
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vanh_store_app/models/order.dart';
 
-class OrderProvider extends StateNotifier<List<Order>> {
-  OrderProvider() : super([]);
+class OrderNotifier extends Notifier<List<Order>> {
+  @override
+  List<Order> build() {
+    return [];
+  }
+
   void setOrders(List<Order> orders) {
     state = orders;
   }
 }
 
-final orderProvider = StateNotifierProvider<OrderProvider, List<Order>>(
-  (ref) => OrderProvider(),
-);
+final orderProvider = NotifierProvider<OrderNotifier, List<Order>>(() {
+  return OrderNotifier();
+});

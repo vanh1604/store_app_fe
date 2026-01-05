@@ -1,14 +1,17 @@
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vanh_store_app/models/category.dart';
 
-class CategoryProvider extends StateNotifier<List<Category>> {
-  CategoryProvider() : super([]);
+class CategoryNotifier extends Notifier<List<Category>> {
+  @override
+  List<Category> build() {
+    return [];
+  }
+
   void setCategories(List<Category> categories) {
     state = categories;
   }
 }
 
-final categoryProvider =
-    StateNotifierProvider<CategoryProvider, List<Category>>(
-      (ref) => CategoryProvider(),
-    );
+final categoryProvider = NotifierProvider<CategoryNotifier, List<Category>>(() {
+  return CategoryNotifier();
+});

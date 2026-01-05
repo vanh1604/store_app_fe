@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vanh_store_app/global_variables.dart';
 import 'package:vanh_store_app/models/order.dart';
 import 'package:vanh_store_app/services/manage_http_response.dart';
@@ -25,6 +26,8 @@ class OrderController {
     required context,
   }) async {
     try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String token = prefs.getString("auth-token") ?? "";
       final Order order = Order(
         id: id,
         fullName: fullName,
@@ -46,6 +49,7 @@ class OrderController {
         Uri.parse("$uri/api/createorder"),
         headers: <String, String>{
           "Content-Type": "application/json; charset=UTF-8",
+          "Authorization": "Bearer $token",
         },
         body: order.toJson(),
       );
@@ -63,10 +67,13 @@ class OrderController {
 
   Future<List<Order>> loadOrders({required String buyerId}) async {
     try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String token = prefs.getString("auth-token") ?? "";
       http.Response res = await http.get(
         Uri.parse("$uri/api/orders/buyers/$buyerId"),
         headers: <String, String>{
           "Content-Type": "application/json; charset=UTF-8",
+          "Authorization": "Bearer $token",
         },
       );
       if (res.statusCode == 200) {
@@ -85,10 +92,13 @@ class OrderController {
 
   Future<void> deleteOrder({required String orderId, required context}) async {
     try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String token = prefs.getString("auth-token") ?? "";
       http.Response res = await http.delete(
         Uri.parse("$uri/api/orders/$orderId"),
         headers: <String, String>{
           "Content-Type": "application/json; charset=UTF-8",
+          "Authorization": "Bearer $token",
         },
       );
       manageHttpResponse(

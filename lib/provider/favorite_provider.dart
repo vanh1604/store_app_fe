@@ -1,17 +1,20 @@
 import 'dart:convert';
 
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vanh_store_app/models/favorite.dart';
 
 final favoriteProvider =
-    StateNotifierProvider<FavoriteNotfier, Map<String, Favorite>>(
-      (ref) => FavoriteNotfier(),
-    );
+    NotifierProvider<FavoriteNotifier, Map<String, Favorite>>(() {
+  return FavoriteNotifier();
+});
 
-class FavoriteNotfier extends StateNotifier<Map<String, Favorite>> {
-  FavoriteNotfier() : super({}) {
+class FavoriteNotifier extends Notifier<Map<String, Favorite>> {
+  @override
+  Map<String, Favorite> build() {
+    // Load favorites when provider is initialized
     _loadFavorites();
+    return {};
   }
 
   Future<void> _loadFavorites() async {

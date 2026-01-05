@@ -1,20 +1,22 @@
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vanh_store_app/models/user.dart';
 
-class UserProvider extends StateNotifier<User?> {
-  UserProvider()
-    : super(
-        User(
-          id: '',
-          fullName: '',
-          state: '',
-          city: '',
-          locality: '',
-          email: '',
-          password: '',
-          token: '',
-        ),
-      );
+class UserNotifier extends Notifier<User?> {
+  @override
+  User? build() {
+    // Initial state - empty user
+    return User(
+      id: '',
+      fullName: '',
+      state: '',
+      city: '',
+      locality: '',
+      email: '',
+      password: '',
+      token: '',
+    );
+  }
+
   User? get user => state;
 
   void setUser(String userJson) {
@@ -26,25 +28,25 @@ class UserProvider extends StateNotifier<User?> {
   }
 
   void updateUser({
-    required String state,
+    required String userState,
     required String city,
     required String locality,
   }) {
-    if (this.state != null) {
-      this.state = User(
-        id: this.state!.id,
-        fullName: this.state!.fullName,
-        state: state,
+    if (state != null) {
+      state = User(
+        id: state!.id,
+        fullName: state!.fullName,
+        state: userState,
         city: city,
         locality: locality,
-        email: this.state!.email,
-        password: this.state!.password,
-        token: this.state!.token,
+        email: state!.email,
+        password: state!.password,
+        token: state!.token,
       );
     }
   }
 }
 
-final userProvider = StateNotifierProvider<UserProvider, User?>(
-  (ref) => UserProvider(),
-);
+final userProvider = NotifierProvider<UserNotifier, User?>(() {
+  return UserNotifier();
+});
