@@ -97,4 +97,28 @@ class ProductController {
       throw Exception('An error occurred while loading products: $e');
     }
   }
+
+  Future<List<Product>> topRatedProducts() async {
+    try {
+      http.Response res = await http.get(
+        Uri.parse("$uri/api/topratedproducts"),
+        headers: <String, String>{
+          "Content-Type": "application/json; charset=UTF-8",
+        },
+      );
+
+      if (res.statusCode == 200) {
+        Map<String, dynamic> responseData = jsonDecode(res.body);
+        List<dynamic> data = responseData["topRatedProducts"] ?? [];
+        List<Product> relatedProducts = data
+            .map((product) => Product.fromMap(product))
+            .toList();
+        return relatedProducts;
+      } else {
+        throw Exception("Failed to load products");
+      }
+    } catch (e) {
+      throw Exception('An error occurred while loading products: $e');
+    }
+  }
 }

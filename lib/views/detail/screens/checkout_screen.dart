@@ -5,7 +5,9 @@ import 'package:vanh_store_app/controllers/order_controller.dart';
 
 import 'package:vanh_store_app/provider/cart_provider.dart';
 import 'package:vanh_store_app/provider/user_provider.dart';
+import 'package:vanh_store_app/services/manage_http_response.dart';
 import 'package:vanh_store_app/views/detail/screens/shipping_address_screen.dart';
+import 'package:vanh_store_app/views/screens/main_screen.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({super.key});
@@ -399,6 +401,17 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                         delivered: false,
                         context: context,
                       );
+                    }).then((value) {
+                      _cartProvider.clearCart();
+                      showSnackBar(context, 'Order placed successfully');
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) {
+                            return MainScreen();
+                          },
+                        ),
+                      );
                     });
                   }
                 },
@@ -412,7 +425,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
                   child: Center(
                     child: Text(
-                      selectedPaymentMethod == "Stripe"
+                      selectedPaymentMethod == "stripe"
                           ? 'Pay Now'
                           : 'Place Order',
                       style: GoogleFonts.montserrat(
