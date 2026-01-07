@@ -5,6 +5,7 @@ import 'package:vanh_store_app/controllers/subcategory_controller.dart';
 import 'package:vanh_store_app/models/category.dart';
 import 'package:vanh_store_app/models/product.dart';
 import 'package:vanh_store_app/models/subcategory.dart';
+import 'package:vanh_store_app/views/detail/screens/subcategory_product_screen.dart';
 import 'package:vanh_store_app/views/detail/screens/widgets/inner_banner_widget.dart';
 import 'package:vanh_store_app/views/detail/screens/widgets/subcategory_tile_widget.dart';
 import 'package:vanh_store_app/views/screens/nav_screens/widgets/product_item_widget.dart';
@@ -91,9 +92,23 @@ class _InnerCategoryContentWidgetState
                                         : end,
                                   )
                                   .map<Widget>((subcategory) {
-                                    return SubcategoryTileWidget(
-                                      image: subcategory.image,
-                                      title: subcategory.subCategoryName,
+                                    return InkWell(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                SubcategoryProductScreen(
+                                                  subcaregoryName: subcategory
+                                                      .subCategoryName,
+                                                ),
+                                          ),
+                                        );
+                                      },
+                                      child: SubcategoryTileWidget(
+                                        image: subcategory.image,
+                                        title: subcategory.subCategoryName,
+                                      ),
                                     );
                                   })
                                   .toList(),

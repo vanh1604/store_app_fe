@@ -150,4 +150,23 @@ class AuthController {
       showSnackBar(context, 'Đã xảy ra lỗi: $e');
     }
   }
+
+  Future<void> getUserInformation(String id) async {
+    try {
+      final res = await http.put(
+        Uri.parse('$uri/api/userInfo/$id'),
+        headers: <String, String>{
+          "Content-Type": "application/json;charset=UTF-8",
+        },
+      );
+      if (res.statusCode == 200) {
+        final responseMap = jsonDecode(res.body);
+        final userMap = responseMap['user'];
+        final correctUserJson = jsonEncode(userMap);
+        providerContainer.read(userProvider.notifier).setUser(correctUserJson);
+      }
+    } catch (e) {
+      debugPrint('Đã xảy ra lỗi khi lấy thông tin người dùng: $e');
+    }
+  }
 }

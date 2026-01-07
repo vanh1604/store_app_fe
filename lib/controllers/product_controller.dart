@@ -121,4 +121,56 @@ class ProductController {
       throw Exception('An error occurred while loading products: $e');
     }
   }
+
+  Future<List<Product>> searchProducts(String query) async {
+    try {
+      final url = Uri.parse(
+        "$uri/api/products/search",
+      ).replace(queryParameters: {'query': query});
+
+      http.Response res = await http.get(
+        url,
+        headers: <String, String>{
+          "Content-Type": "application/json; charset=UTF-8",
+        },
+      );
+
+      if (res.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(res.body);
+        List<Product> products = data
+            .map((product) => Product.fromMap(product))
+            .toList();
+        return products;
+      } else {
+        throw Exception("Failed to search products");
+      }
+    } catch (e) {
+      print("Error: $e");
+      throw Exception('An error occurred while searching products: $e');
+    }
+  }
+
+  Future<List<Product>> getProductsBySubcategory(String subcategory) async {
+    try {
+      http.Response res = await http.get(
+        Uri.parse("$uri/api/products/subcategory/$subcategory"),
+        headers: <String, String>{
+          "Content-Type": "application/json; charset=UTF-8",
+        },
+      );
+
+      if (res.statusCode == 200) {
+        Map<String, dynamic> responseData = jsonDecode(res.body);
+        List<dynamic> data = responseData["products"] ?? [];
+        List<Product> relatedProducts = data
+            .map((product) => Product.fromMap(product))
+            .toList();
+        return relatedProducts;
+      } else {
+        throw Exception("Failed to load products");
+      }
+    } catch (e) {
+      throw Exception('An error occurred while loading products: $e');
+    }
+  }
 }

@@ -1,49 +1,80 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vanh_store_app/controllers/category_controller.dart';
 import 'package:vanh_store_app/controllers/subcategory_controller.dart';
 import 'package:vanh_store_app/models/category.dart';
-import 'package:vanh_store_app/models/subcategory.dart';
+import 'package:vanh_store_app/provider/category_provider.dart';
+import 'package:vanh_store_app/provider/subcategory_provider.dart';
+import 'package:vanh_store_app/views/detail/screens/subcategory_product_screen.dart';
 import 'package:vanh_store_app/views/detail/screens/widgets/subcategory_tile_widget.dart';
 import 'package:vanh_store_app/views/screens/nav_screens/widgets/header_widget.dart';
 
-class CategoryScreen extends StatefulWidget {
+class CategoryScreen extends ConsumerStatefulWidget {
   const CategoryScreen({super.key});
   @override
-  _CategoryScreenState createState() => _CategoryScreenState();
+  ConsumerState<CategoryScreen> createState() => _CategoryScreenState();
 }
 
-class _CategoryScreenState extends State<CategoryScreen> {
-  late Future<List<Category>> _categoryFuture;
+class _CategoryScreenState extends ConsumerState<CategoryScreen> {
   Category? _selectedCategory;
-  List<Subcategory> _subcategories = [];
+  bool _isLoadingCategories = true;
+  bool _isLoadingSubcategories = false;
+
+  final CategoryController _categoryController = CategoryController();
   final SubcategoryController _subcategoryController = SubcategoryController();
+
   @override
   void initState() {
     super.initState();
-    _categoryFuture = CategoryController().loadCategories();
+    _loadCategories();
+  }
 
-    _categoryFuture.then((categories) {
+  Future<void> _loadCategories() async {
+    setState(() {
+      _isLoadingCategories = true;
+    });
+
+    final categories = await _categoryController.loadCategories();
+
+    if (mounted) {
+      ref.read(categoryProvider.notifier).setCategories(categories);
+
+      setState(() {
+        _isLoadingCategories = false;
+      });
+
       if (categories.isNotEmpty) {
         setState(() {
           _selectedCategory = categories[0];
         });
         _loadSubcategories(categories[0].name);
       }
-    });
+    }
   }
 
   Future<void> _loadSubcategories(String categoryName) async {
-    print('Loading subcategories for $categoryName');
+    setState(() {
+      _isLoadingSubcategories = true;
+    });
+
     final subcategories = await _subcategoryController
         .getSubCategoriesByCategoryName(categoryName);
-    setState(() {
-      _subcategories = subcategories;
-    });
+
+    if (mounted) {
+      ref.read(subcategoryProvider.notifier).setSubcategories(subcategories);
+
+      setState(() {
+        _isLoadingSubcategories = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final categories = ref.watch(categoryProvider);
+    final subcategories = ref.watch(subcategoryProvider);
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(
@@ -54,49 +85,107 @@ class _CategoryScreenState extends State<CategoryScreen> {
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Left sidebar - Categories list
           Expanded(
             flex: 2,
             child: Container(
-              color: Colors.grey.shade200,
-              child: FutureBuilder(
-                future: _categoryFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(child: Text("Error: ${snapshot.error}"));
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Center(child: Text("No categories available"));
-                  } else {
-                    List<Category> categories = snapshot.data!;
-                    return ListView.builder(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.shade300,
+                    blurRadius: 4,
+                    offset: Offset(2, 0),
+                  ),
+                ],
+              ),
+              child: _isLoadingCategories
+                  ? Center(
+                      child: CircularProgressIndicator(color: Colors.purple),
+                    )
+                  : categories.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.category_outlined,
+                            size: 48,
+                            color: Colors.grey.shade400,
+                          ),
+                          SizedBox(height: 12),
+                          Text(
+                            "No categories",
+                            style: GoogleFonts.quicksand(
+                              fontSize: 14,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
                       itemCount: categories.length,
                       itemBuilder: (context, index) {
-                        return ListTile(
+                        final category = categories[index];
+                        final isSelected = _selectedCategory == category;
+                        return InkWell(
                           onTap: () {
                             setState(() {
-                              _selectedCategory = categories[index];
+                              _selectedCategory = category;
                             });
-                            _loadSubcategories(categories[index].name);
+                            _loadSubcategories(category.name);
                           },
-                          title: Text(
-                            categories[index].name,
-                            style: GoogleFonts.quicksand(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                              color: _selectedCategory == categories[index]
-                                  ? Colors.purple
-                                  : Colors.black,
+                          child: Container(
+                            margin: EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? Colors.purple.shade50
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: isSelected
+                                    ? Colors.purple
+                                    : Colors.transparent,
+                                width: 2,
+                              ),
+                            ),
+                            child: ListTile(
+                              dense: true,
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 4,
+                              ),
+                              title: Text(
+                                category.name,
+                                style: GoogleFonts.quicksand(
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.w600,
+                                  fontSize: 14,
+                                  color: isSelected
+                                      ? Colors.purple.shade700
+                                      : Colors.black87,
+                                ),
+                              ),
+                              trailing: isSelected
+                                  ? Icon(
+                                      Icons.arrow_forward_ios,
+                                      size: 14,
+                                      color: Colors.purple,
+                                    )
+                                  : null,
                             ),
                           ),
                         );
                       },
-                    );
-                  }
-                },
-              ),
+                    ),
             ),
           ),
+          // Right content - Category details and subcategories
           Expanded(
             flex: 5,
             child: _selectedCategory != null
@@ -104,64 +193,179 @@ class _CategoryScreenState extends State<CategoryScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Category title
                         Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            _selectedCategory!.name,
-                            style: GoogleFonts.quicksand(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                              letterSpacing: 1.7,
-                            ),
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 4,
+                                height: 24,
+                                decoration: BoxDecoration(
+                                  color: Colors.purple,
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                _selectedCategory!.name,
+                                style: GoogleFonts.quicksand(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 22,
+                                  letterSpacing: 0.5,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
+                        // Category banner
                         Padding(
-                          padding: const EdgeInsets.all(8.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
                           child: Container(
-                            height: 150,
+                            height: 180,
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              image: DecorationImage(
-                                image: NetworkImage(_selectedCategory!.banner),
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.shade300,
+                                  blurRadius: 8,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                _selectedCategory!.banner,
                                 fit: BoxFit.cover,
+                                width: double.infinity,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    color: Colors.grey.shade200,
+                                    child: Center(
+                                      child: Icon(
+                                        Icons.image_not_supported,
+                                        size: 48,
+                                        color: Colors.grey.shade400,
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
                             ),
                           ),
                         ),
-                        _subcategories.isNotEmpty
-                            ? GridView.builder(
-                                physics: NeverScrollableScrollPhysics(),
-                                shrinkWrap: true,
-                                itemCount: _subcategories.length,
-                                gridDelegate:
-                                    SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 3,
-                                      mainAxisSpacing: 4,
-                                      crossAxisSpacing: 8,
-                                      childAspectRatio: 2 / 3,
-                                    ),
-                                itemBuilder: (context, index) {
-                                  final subcategory = _subcategories[index];
-                                  return SubcategoryTileWidget(
-                                    image: subcategory.image,
-                                    title: subcategory.subCategoryName,
-                                  );
-                                },
+                        SizedBox(height: 24),
+                        // Subcategories section
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Text(
+                            'Subcategories',
+                            style: GoogleFonts.quicksand(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              letterSpacing: 0.5,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 12),
+                        // Loading or subcategories grid
+                        _isLoadingSubcategories
+                            ? Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(32.0),
+                                  child: CircularProgressIndicator(
+                                    color: Colors.purple,
+                                  ),
+                                ),
+                              )
+                            : subcategories.isNotEmpty
+                            ? Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16.0,
+                                ),
+                                child: GridView.builder(
+                                  physics: NeverScrollableScrollPhysics(),
+                                  shrinkWrap: true,
+                                  itemCount: subcategories.length,
+                                  gridDelegate:
+                                      SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: 3,
+                                        mainAxisSpacing: 16,
+                                        crossAxisSpacing: 16,
+                                        childAspectRatio: 2 / 3,
+                                      ),
+                                  itemBuilder: (context, index) {
+                                    final subcategory = subcategories[index];
+                                    return InkWell(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                SubcategoryProductScreen(
+                                                  subcaregoryName: subcategory
+                                                      .subCategoryName,
+                                                ),
+                                          ),
+                                        );
+                                      },
+                                      child: SubcategoryTileWidget(
+                                        image: subcategory.image,
+                                        title: subcategory.subCategoryName,
+                                      ),
+                                    );
+                                  },
+                                ),
                               )
                             : Center(
-                                child: Text(
-                                  'No subcategories available',
-                                  style: GoogleFonts.quicksand(
-                                    fontSize: 16,
-                                    color: Colors.grey,
-                                    letterSpacing: 1.7,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(32.0),
+                                  child: Column(
+                                    children: [
+                                      Icon(
+                                        Icons.grid_view_outlined,
+                                        size: 48,
+                                        color: Colors.grey.shade400,
+                                      ),
+                                      SizedBox(height: 12),
+                                      Text(
+                                        'No subcategories available',
+                                        style: GoogleFonts.quicksand(
+                                          fontSize: 16,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
+                        SizedBox(height: 24),
                       ],
                     ),
                   )
-                : Container(),
+                : Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.category_outlined,
+                          size: 64,
+                          color: Colors.grey.shade300,
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'Select a category',
+                          style: GoogleFonts.quicksand(
+                            fontSize: 18,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
           ),
         ],
       ),
