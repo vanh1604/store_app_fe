@@ -1,9 +1,8 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vanh_store_app/controllers/order_controller.dart';
+import 'package:vanh_store_app/models/order.dart';
 import 'package:vanh_store_app/provider/order_provider.dart';
 import 'package:vanh_store_app/provider/user_provider.dart';
 import 'package:vanh_store_app/views/detail/screens/order_detail_screen.dart';
@@ -16,7 +15,16 @@ class OrderScreen extends ConsumerStatefulWidget {
 }
 
 class _OrderScreenState extends ConsumerState<OrderScreen> {
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchOrderData();
+  }
+
   Future<void> _fetchOrderData() async {
+    setState(() => _isLoading = true);
     final user = ref.read(userProvider);
     if (user != null) {
       final OrderController orderController = OrderController();
@@ -24,314 +32,331 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
         final res = await orderController.loadOrders(buyerId: user.id);
         ref.read(orderProvider.notifier).setOrders(res);
       } catch (e) {
-        print("Error: $e");
+        debugPrint("Error fetching orders: $e");
       }
     }
+    setState(() => _isLoading = false);
   }
 
-  Future<void> deleteOrder({required String orderId}) async {
+  Future<void> _deleteOrder(String orderId) async {
+    final confirm = await _showDeleteConfirmation();
+    if (!confirm || !mounted) return;
+
     try {
       final OrderController orderController = OrderController();
       await orderController.deleteOrder(orderId: orderId, context: context);
-      _fetchOrderData();
+      await _fetchOrderData();
     } catch (e) {
-      print("Error: $e");
+      debugPrint("Error deleting order: $e");
     }
   }
 
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    _fetchOrderData();
+  Future<bool> _showDeleteConfirmation() async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Delete Order', style: GoogleFonts.lato(fontWeight: FontWeight.bold)),
+        content: Text('Are you sure you want to delete this order?', style: GoogleFonts.lato()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Cancel', style: GoogleFonts.lato(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('Delete', style: GoogleFonts.lato(color: Colors.red, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    ) ?? false;
   }
 
   @override
   Widget build(BuildContext context) {
     final orders = ref.watch(orderProvider);
-    return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(
-          MediaQuery.of(context).size.height * 0.2,
-        ),
-        child: Container(
-          width: MediaQuery.of(context).size.width,
-          height: 118,
-          clipBehavior: Clip.hardEdge,
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage('assets/icons/cartb.png'),
-              fit: BoxFit.cover,
-            ),
-          ),
-          child: Stack(
-            children: [
-              Positioned(
-                left: 322,
-                top: 52,
-                child: Stack(
-                  children: [
-                    Image.asset('assets/icons/not.png', width: 25, height: 25),
-                    Positioned(
-                      top: 0,
-                      right: 0,
 
-                      child: Container(
-                        width: 20,
-                        height: 20,
-                        padding: EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: Colors.yellow.shade800,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Center(
-                          child: Text(
-                            orders.length.toString(),
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Positioned(
-                left: 61,
-                top: 51,
-                child: Text(
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
+      appBar: _buildAppBar(orders.length),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : orders.isEmpty
+              ? _buildEmptyState()
+              : _buildOrderList(orders),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar(int orderCount) {
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(120),
+      child: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/icons/cartb.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
                   'My Orders',
                   style: GoogleFonts.lato(
                     color: Colors.white,
-                    fontSize: 24,
+                    fontSize: 28,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+                _buildNotificationBadge(orderCount),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNotificationBadge(int count) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Image.asset('assets/icons/not.png', width: 28, height: 28),
+        if (count > 0)
+          Positioned(
+            top: -4,
+            right: -4,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.yellow.shade800,
+                shape: BoxShape.circle,
               ),
+              constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+              child: Center(
+                child: Text(
+                  count > 99 ? '99+' : count.toString(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 10,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.shopping_bag_outlined,
+            size: 100,
+            color: Colors.grey.shade300,
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'No Orders Yet',
+            style: GoogleFonts.lato(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Your order history will appear here',
+            style: GoogleFonts.lato(
+              fontSize: 14,
+              color: Colors.grey.shade500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrderList(List<Order> orders) {
+    return RefreshIndicator(
+      onRefresh: _fetchOrderData,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: orders.length,
+        itemBuilder: (context, index) {
+          return _OrderCard(
+            order: orders[index],
+            onTap: () => _navigateToOrderDetail(orders[index]),
+            onDelete: () => _deleteOrder(orders[index].id),
+          );
+        },
+      ),
+    );
+  }
+
+  void _navigateToOrderDetail(Order order) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => OrderDetailScreen(order: order),
+      ),
+    );
+  }
+}
+
+class _OrderCard extends StatelessWidget {
+  final Order order;
+  final VoidCallback onTap;
+  final VoidCallback onDelete;
+
+  const _OrderCard({
+    required this.order,
+    required this.onTap,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildProductImage(),
+                  const SizedBox(width: 16),
+                  Expanded(child: _buildProductInfo()),
+                ],
+              ),
+              const SizedBox(height: 12),
+              _buildOrderFooter(),
             ],
           ),
         ),
       ),
-      body: orders.isEmpty
-          ? Center(child: Text('No orders found'))
-          : ListView.builder(
-              itemCount: orders.length,
-              itemBuilder: (context, index) {
-                final order = orders[index];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 25,
-                    vertical: 25,
-                  ),
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) {
-                            return OrderDetailScreen(order: order);
-                          },
-                        ),
-                      );
-                    },
-                    child: Container(
-                      width: 335,
-                      height: 153,
-                      clipBehavior: Clip.antiAlias,
-                      decoration: BoxDecoration(),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            Positioned(
-                              left: 0,
-                              top: 0,
-                              child: Container(
-                                width: 336,
-                                height: 154,
-                                clipBehavior: Clip.antiAlias,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  border: Border.all(color: Color(0xFFEFF0F2)),
-                                  borderRadius: BorderRadius.circular(9),
-                                ),
-                                child: Stack(
-                                  children: [
-                                    Positioned(
-                                      left: 13,
-                                      top: 9,
-                                      child: Container(
-                                        width: 78,
-                                        height: 78,
-                                        clipBehavior: Clip.antiAlias,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          border: Border.all(
-                                            color: Color(0xFFEFF0F2),
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                        ),
-                                        child: Stack(
-                                          clipBehavior: Clip.none,
-                                          children: [
-                                            Positioned(
-                                              left: 10,
-                                              top: 5,
-                                              child: Image.network(
-                                                order.image,
-                                                width: 58,
-                                                height: 67,
-                                                fit: BoxFit.cover,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                    Positioned(
-                                      left: 101,
-                                      top: 14,
-                                      child: SizedBox(
-                                        width: 216,
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Expanded(
-                                              child: SizedBox(
-                                                width: double.infinity,
-                                                child: Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  children: [
-                                                    SizedBox(
-                                                      width: double.infinity,
-                                                      child: Text(
-                                                        order.productName,
-                                                        style:
-                                                            GoogleFonts.montserrat(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w700,
-                                                              fontSize: 16,
-                                                            ),
-                                                      ),
-                                                    ),
-                                                    SizedBox(height: 4),
-                                                    Align(
-                                                      alignment:
-                                                          Alignment.centerLeft,
-                                                      child: Text(
-                                                        order.category,
-                                                        style:
-                                                            GoogleFonts.montserrat(
-                                                              color: Color(
-                                                                0XFF7F808C,
-                                                              ),
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600,
-                                                              fontSize: 12,
-                                                            ),
-                                                      ),
-                                                    ),
-                                                    SizedBox(height: 4),
-                                                    Text(
-                                                      "\$${order.productPrice.toStringAsFixed(2)}",
-                                                      style:
-                                                          GoogleFonts.montserrat(
-                                                            color: Color(
-                                                              0XFF0B0C1E,
-                                                            ),
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                            fontSize: 12,
-                                                          ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                    Positioned(
-                                      left: 13,
-                                      top: 113,
-                                      child: Container(
-                                        width: 97,
-                                        height: 25,
-                                        clipBehavior: Clip.antiAlias,
-                                        decoration: BoxDecoration(
-                                          color: order.delivered == true
-                                              ? Color(0xFF3C55EF)
-                                              : order.processing == true
-                                              ? Colors.purple
-                                              : Colors.red,
-                                          borderRadius: BorderRadius.circular(
-                                            4,
-                                          ),
-                                        ),
-                                        child: Stack(
-                                          clipBehavior: Clip.none,
-                                          children: [
-                                            Positioned(
-                                              left: 9,
-                                              top: 2,
-                                              child: Text(
-                                                order.delivered == true
-                                                    ? "Delivered"
-                                                    : order.processing == true
-                                                    ? "Processing"
-                                                    : "Cancelled",
-                                                style: GoogleFonts.montserrat(
-                                                  color: Colors.white,
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.bold,
-                                                  letterSpacing: 1.3,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                    Positioned(
-                                      left: 298,
-                                      top: 115,
-                                      child: InkWell(
-                                        onTap: () {
-                                          deleteOrder(orderId: order.id);
-                                        },
-                                        child: Image.asset(
-                                          'assets/icons/delete.png',
-                                          width: 20,
-                                          height: 20,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
+    );
+  }
+
+  Widget _buildProductImage() {
+    return Container(
+      width: 80,
+      height: 80,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.network(
+          order.image,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => Icon(
+            Icons.image_not_supported_outlined,
+            size: 40,
+            color: Colors.grey.shade400,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProductInfo() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          order.productName,
+          style: GoogleFonts.lato(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            color: const Color(0xFF0B0C1E),
+          ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 6),
+        Text(
+          order.category,
+          style: GoogleFonts.lato(
+            color: const Color(0xFF7F808C),
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          '\$${order.productPrice.toStringAsFixed(2)}',
+          style: GoogleFonts.lato(
+            color: Colors.deepPurple,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOrderFooter() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _buildStatusBadge(),
+        IconButton(
+          onPressed: onDelete,
+          icon: const Icon(Icons.delete_outline, color: Colors.red),
+          tooltip: 'Delete order',
+          visualDensity: VisualDensity.compact,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatusBadge() {
+    final String status;
+    final Color color;
+
+    if (order.delivered == true) {
+      status = 'Delivered';
+      color = const Color(0xFF3C55EF);
+    } else if (order.processing == true) {
+      status = 'Processing';
+      color = Colors.purple;
+    } else {
+      status = 'Cancelled';
+      color = Colors.red;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        status,
+        style: GoogleFonts.lato(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 0.5,
+        ),
+      ),
     );
   }
 }

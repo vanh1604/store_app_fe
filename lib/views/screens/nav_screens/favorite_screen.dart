@@ -16,199 +16,381 @@ class _FavoriteScreenState extends ConsumerState<FavoriteScreen> {
   Widget build(BuildContext context) {
     final favoriteData = ref.watch(favoriteProvider);
     final favoriteNotifier = ref.read(favoriteProvider.notifier);
-    return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(
-          MediaQuery.of(context).size.height * 0.2,
-        ),
-        child: Container(
-          width: MediaQuery.of(context).size.width,
-          height: 118,
-          clipBehavior: Clip.hardEdge,
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage('assets/icons/cartb.png'),
-              fit: BoxFit.cover,
-            ),
-          ),
-          child: Stack(
-            children: [
-              Positioned(
-                left: 322,
-                top: 52,
-                child: Stack(
-                  children: [
-                    Image.asset('assets/icons/not.png', width: 25, height: 25),
-                    Positioned(
-                      top: 0,
-                      right: 0,
 
-                      child: Container(
-                        width: 20,
-                        height: 20,
-                        padding: EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: Colors.yellow.shade800,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Center(
-                          child: Text(
-                            favoriteData.length.toString(),
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+    return Scaffold(
+      backgroundColor: Colors.grey[50],
+      appBar: _buildAppBar(context, favoriteData.length),
+      body: favoriteData.isEmpty
+          ? _buildEmptyState(context)
+          : _buildFavoriteList(favoriteData, favoriteNotifier),
+    );
+  }
+
+  // ==================== AppBar ====================
+  PreferredSizeWidget _buildAppBar(BuildContext context, int itemCount) {
+    return AppBar(
+      elevation: 0,
+      backgroundColor: Colors.deepPurple,
+      toolbarHeight: 80,
+      title: Text(
+        'My Wish List',
+        style: GoogleFonts.lato(
+          fontSize: 26,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      ),
+      centerTitle: false,
+      actions: [
+        _buildNotificationBadge(itemCount),
+        const SizedBox(width: 16),
+      ],
+    );
+  }
+
+  Widget _buildNotificationBadge(int count) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        IconButton(
+          icon: const Icon(
+            Icons.favorite,
+            color: Colors.white,
+            size: 28,
+          ),
+          onPressed: () {},
+        ),
+        if (count > 0)
+          Positioned(
+            right: 8,
+            top: 8,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.amber[700],
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha(51), // 0.2 * 255 = 51
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-              Positioned(
-                left: 61,
-                top: 51,
+              constraints: const BoxConstraints(
+                minWidth: 20,
+                minHeight: 20,
+              ),
+              child: Center(
                 child: Text(
-                  'My Wish List',
-                  style: GoogleFonts.lato(
+                  count > 99 ? '99+' : count.toString(),
+                  style: GoogleFonts.roboto(
                     color: Colors.white,
-                    fontSize: 24,
+                    fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
-            ],
+            ),
           ),
-        ),
-      ),
-      body: favoriteData.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    textAlign: TextAlign.center,
-                    'WishList is empty \n Add some products to your Wish list',
-                    style: GoogleFonts.roboto(fontSize: 15, letterSpacing: 1.7),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) {
-                            return MainScreen();
-                          },
-                        ),
-                      );
-                    },
-                    child: Text('SHOP NOW'),
-                  ),
-                ],
+      ],
+    );
+  }
+
+  // ==================== Empty State ====================
+  Widget _buildEmptyState(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Empty icon
+            Container(
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: Colors.purple[50],
+                shape: BoxShape.circle,
               ),
-            )
-          : ListView.builder(
-              itemCount: favoriteData.length,
-              shrinkWrap: true,
-              itemBuilder: (context, index) {
-                final wishData = favoriteData.values.toList()[index];
-                return Padding(
-                  padding: EdgeInsets.all(8),
-                  child: Center(
-                    child: Container(
-                      width: 335,
-                      height: 96,
-                      clipBehavior: Clip.hardEdge,
-                      decoration: BoxDecoration(),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            Positioned(
-                              left: 0,
-                              top: 0,
-                              child: Container(
-                                clipBehavior: Clip.antiAlias,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  border: Border.all(color: Color(0xFFEFF0F2)),
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              left: 13,
-                              top: 9,
-                              child: Container(
-                                clipBehavior: Clip.antiAlias,
-                                width: 78,
-                                height: 78,
-                                decoration: BoxDecoration(
-                                  color: Color(0XFFBCC5FF),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              left: 275,
-                              top: 16,
-                              child: Text(
-                                "${wishData.price.toStringAsFixed(2)}\$",
-                                style: GoogleFonts.montserrat(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                  color: Color(0xFF0B0C1F),
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              left: 101,
-                              top: 14,
-                              child: Text(
-                                wishData.productName,
-                                style: GoogleFonts.montserrat(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                  color: Color(0xFF0B0C1F),
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              left: 23,
-                              top: 14,
-                              child: Image.network(
-                                wishData.image[0],
-                                width: 56,
-                                height: 67,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                            Positioned(
-                              left: 284,
-                              top: 47,
-                              child: InkWell(
-                                onTap: () {
-                                  favoriteNotifier.removeFavoriteItem(
-                                    wishData.productId,
-                                  );
-                                },
-                                child: Image.asset(
-                                  "assets/icons/delete.png",
-                                  width: 25,
-                                  height: 28,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+              child: Icon(
+                Icons.favorite_border,
+                size: 80,
+                color: Colors.deepPurple[300],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Title
+            Text(
+              'Your Wishlist is Empty',
+              style: GoogleFonts.lato(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[800],
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Description
+            Text(
+              'Save your favorite items here\nand shop them later',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.roboto(
+                fontSize: 16,
+                color: Colors.grey[600],
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 32),
+
+            // Shop Now Button
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MainScreen(),
                   ),
                 );
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.deepPurple,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 48,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 2,
+              ),
+              child: Text(
+                'Start Shopping',
+                style: GoogleFonts.lato(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ==================== Favorite List ====================
+  Widget _buildFavoriteList(
+    Map<String, dynamic> favoriteData,
+    dynamic favoriteNotifier,
+  ) {
+    final favoriteItems = favoriteData.values.toList();
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: favoriteItems.length,
+      itemBuilder: (context, index) {
+        final item = favoriteItems[index];
+        return _FavoriteItemCard(
+          item: item,
+          onRemove: () {
+            favoriteNotifier.removeFavoriteItem(item.productId);
+          },
+        );
+      },
+    );
+  }
+}
+
+// ==================== Favorite Item Card ====================
+class _FavoriteItemCard extends StatelessWidget {
+  final dynamic item;
+  final VoidCallback onRemove;
+
+  const _FavoriteItemCard({
+    required this.item,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Dismissible(
+      key: ValueKey(item.productId),
+      direction: DismissDirection.endToStart,
+      background: _buildDismissBackground(),
+      onDismissed: (_) => onRemove(),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(13), // 0.05 * 255 = 13
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                // Navigate to product detail if needed
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Product Image
+                    _buildProductImage(),
+                    const SizedBox(width: 16),
+
+                    // Product Info
+                    Expanded(
+                      child: _buildProductInfo(),
+                    ),
+
+                    // Price and Actions
+                    _buildPriceAndActions(context),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProductImage() {
+    return Container(
+      width: 80,
+      height: 80,
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.grey[200]!,
+          width: 1,
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.network(
+          item.image[0],
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Icon(
+              Icons.image_not_supported,
+              color: Colors.grey[400],
+              size: 32,
+            );
+          },
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Center(
+              child: CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes!
+                    : null,
+                strokeWidth: 2,
+                color: Colors.deepPurple,
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProductInfo() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Product Name
+        Text(
+          item.productName,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.lato(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey[800],
+            height: 1.3,
+          ),
+        ),
+        const SizedBox(height: 4),
+
+        // Category or Additional Info
+        if (item.category != null)
+          Text(
+            item.category,
+            style: GoogleFonts.roboto(
+              fontSize: 13,
+              color: Colors.grey[500],
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildPriceAndActions(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        // Price
+        Text(
+          '\$${item.price.toStringAsFixed(2)}',
+          style: GoogleFonts.lato(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.deepPurple,
+          ),
+        ),
+        const SizedBox(height: 8),
+
+        // Delete Button
+        InkWell(
+          onTap: onRemove,
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.red[50],
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              Icons.delete_outline,
+              color: Colors.red[400],
+              size: 20,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDismissBackground() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.red[400],
+        borderRadius: BorderRadius.circular(16),
+      ),
+      alignment: Alignment.centerRight,
+      padding: const EdgeInsets.only(right: 24),
+      child: const Icon(
+        Icons.delete_outline,
+        color: Colors.white,
+        size: 32,
+      ),
     );
   }
 }
