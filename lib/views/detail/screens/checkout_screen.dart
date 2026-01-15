@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vanh_store_app/controllers/order_controller.dart';
-
 import 'package:vanh_store_app/provider/cart_provider.dart';
 import 'package:vanh_store_app/provider/user_provider.dart';
 import 'package:vanh_store_app/services/manage_http_response.dart';
@@ -19,11 +19,147 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   String selectedPaymentMethod = 'stripe';
   final OrderController orderController = OrderController();
+  Future<void> handleStripePayment(BuildContext context) async {
+    List<String> createdOrderIds = [];
+
+    try {
+      final cartData = ref.read(cartProvider);
+      final cartProviderNotifier = ref.read(cartProvider.notifier);
+      final user = ref.read(userProvider);
+
+      // Show loading indicator
+      if (!context.mounted) return;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => Center(child: CircularProgressIndicator()),
+      );
+
+      // Calculate total amount from cart
+      double totalAmount = 0;
+      cartData.forEach((key, item) {
+        totalAmount += item.price * item.quantity;
+      });
+      // Convert to cents for Stripe (amount should be in smallest currency unit)
+      int amountInCents = (totalAmount * 100).toInt();
+      // Step 1: Create orders first with processing=false (pending payment)
+      for (var entry in cartProviderNotifier.getCartItems.entries) {
+        var item = entry.value;
+        final orderId = await orderController.uploadOrders(
+          id: '',
+          fullName: user!.fullName,
+          email: user.email,
+          state: user.state,
+          city: user.city,
+          locality: user.locality,
+          productName: item.productName,
+          quantity: item.quantity,
+          productPrice: item.price,
+          category: item.category,
+          image: item.image[0],
+          buyerId: user.id,
+          vendorId: item.vendorId,
+          processing: false,
+          delivered: false,
+          context: context,
+        );
+
+        if (orderId != null) {
+          createdOrderIds.add(orderId);
+          print("Order created with ID: $orderId");
+        }
+      }
+
+      if (createdOrderIds.isEmpty) {
+        throw Exception("Failed to create orders");
+      }
+
+      // Step 2: Create payment intent with first orderId
+      final paymentIntentData = await orderController.createPaymentIntent(
+        amount: amountInCents,
+        currency: 'usd',
+        orderId: createdOrderIds.first,
+      );
+
+      // Step 3: Initialize payment sheet
+      await Stripe.instance.initPaymentSheet(
+        paymentSheetParameters: SetupPaymentSheetParameters(
+          paymentIntentClientSecret: paymentIntentData['clientSecret'],
+          merchantDisplayName: 'Vanh Store',
+          style: ThemeMode.light,
+        ),
+      );
+
+      // Step 4: Present payment sheet
+      await Stripe.instance.presentPaymentSheet();
+
+      // Step 5: Payment successful!
+
+      // Clear cart after successful payment
+      cartProviderNotifier.clearCart();
+
+      // Close loading dialog
+      if (!context.mounted) return;
+      Navigator.pop(context);
+
+      if (!context.mounted) return;
+      showSnackBar(context, 'Payment successful! Order placed successfully');
+
+      // Navigate to main screen
+      if (!context.mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => MainScreen()),
+      );
+    } on StripeException catch (e) {
+      // Payment failed or cancelled - delete created orders
+
+      for (String orderId in createdOrderIds) {
+        try {
+          await orderController.deleteOrder(orderId: orderId, context: context);
+        } catch (deleteError) {
+          print("Failed to delete order $orderId: $deleteError");
+        }
+      }
+
+      // Close loading dialog
+      if (context.mounted) {
+        Navigator.pop(context);
+      }
+
+      print("Stripe error: ${e.error.localizedMessage}");
+      if (!context.mounted) return;
+      showSnackBar(
+        context,
+        'Payment cancelled or failed: ${e.error.localizedMessage}',
+      );
+    } catch (e) {
+      // Error occurred - delete created orders
+      print("Error occurred. Deleting created orders...");
+      for (String orderId in createdOrderIds) {
+        try {
+          await orderController.deleteOrder(orderId: orderId, context: context);
+          print("Deleted order: $orderId");
+        } catch (deleteError) {
+          print("Failed to delete order $orderId: $deleteError");
+        }
+      }
+
+      // Close loading dialog
+      if (context.mounted) {
+        Navigator.pop(context);
+      }
+
+      print("Error: $e");
+      if (!context.mounted) return;
+      showSnackBar(context, 'An error occurred: ${e.toString()}');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final cartData = ref.watch(cartProvider);
-    final _cartProvider = ref.read(cartProvider.notifier);
+    final cartProviderNotifier = ref.read(cartProvider.notifier);
     final user = ref.watch(userProvider);
 
     return Scaffold(
@@ -378,31 +514,33 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             : InkWell(
                 onTap: () async {
                   if (selectedPaymentMethod == "stripe") {
+                    await handleStripePayment(context);
                   } else {
-                    await Future.forEach(_cartProvider.getCartItems.entries, (
-                      entry,
-                    ) {
-                      var item = entry.value;
-                      orderController.uploadOrders(
-                        id: '',
-                        fullName: ref.read(userProvider)!.fullName,
-                        email: ref.read(userProvider)!.email,
-                        state: ref.read(userProvider)!.state,
-                        city: ref.read(userProvider)!.city,
-                        locality: ref.read(userProvider)!.locality,
-                        productName: item.productName,
-                        quantity: item.quantity,
-                        productPrice: item.price,
-                        category: item.category,
-                        image: item.image[0],
-                        buyerId: ref.read(userProvider)!.id,
-                        vendorId: item.vendorId,
-                        processing: true,
-                        delivered: false,
-                        context: context,
-                      );
-                    }).then((value) {
-                      _cartProvider.clearCart();
+                    await Future.forEach(
+                      cartProviderNotifier.getCartItems.entries,
+                      (entry) {
+                        var item = entry.value;
+                        orderController.uploadOrders(
+                          id: '',
+                          fullName: ref.read(userProvider)!.fullName,
+                          email: ref.read(userProvider)!.email,
+                          state: ref.read(userProvider)!.state,
+                          city: ref.read(userProvider)!.city,
+                          locality: ref.read(userProvider)!.locality,
+                          productName: item.productName,
+                          quantity: item.quantity,
+                          productPrice: item.price,
+                          category: item.category,
+                          image: item.image[0],
+                          buyerId: ref.read(userProvider)!.id,
+                          vendorId: item.vendorId,
+                          processing: true,
+                          delivered: false,
+                          context: context,
+                        );
+                      },
+                    ).then((value) {
+                      cartProviderNotifier.clearCart();
                       showSnackBar(context, 'Order placed successfully');
                       Navigator.push(
                         context,

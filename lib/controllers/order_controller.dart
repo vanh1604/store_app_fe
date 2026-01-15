@@ -7,7 +7,7 @@ import 'package:vanh_store_app/models/order.dart';
 import 'package:vanh_store_app/services/manage_http_response.dart';
 
 class OrderController {
-  uploadOrders({
+  Future<String?> uploadOrders({
     required String id,
     required String fullName,
     required String email,
@@ -53,15 +53,22 @@ class OrderController {
         },
         body: order.toJson(),
       );
-      manageHttpResponse(
-        res: res,
-        context: context,
-        onSuccess: () {
-          showSnackBar(context, "Order created successfully");
-        },
-      );
+      if (res.statusCode == 200 || res.statusCode == 201) {
+        final responseData = jsonDecode(res.body);
+        final String? orderId = responseData['order']?['_id'];
+        if (orderId == null || orderId.isEmpty) {
+          throw Exception("Order created but _id not found in response");
+        }
+
+        return orderId;
+      } else {
+        throw Exception(
+          "Failed to create order: ${res.statusCode} - ${res.body}",
+        );
+      }
     } catch (e) {
       showSnackBar(context, e.toString());
+      return null;
     }
   }
 
@@ -110,6 +117,39 @@ class OrderController {
       );
     } catch (e) {
       print("Error: $e");
+    }
+  }
+
+  Future<Map<String, dynamic>> createPaymentIntent({
+    required int amount,
+    required String currency,
+    required orderId,
+  }) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String token = prefs.getString("auth-token") ?? "";
+      final requestBody = {
+        'amount': amount,
+        'currency': currency,
+        'orderId': orderId,
+      };
+      http.Response res = await http.post(
+        Uri.parse("$uri/api/orders/payment"),
+        headers: <String, String>{
+          "Content-Type": "application/json; charset=UTF-8",
+          "Authorization": "Bearer $token",
+        },
+        body: jsonEncode(requestBody),
+      );
+      if (res.statusCode == 200 || res.statusCode == 201) {
+        return jsonDecode(res.body);
+      } else {
+        throw Exception(
+          "Failed to create payment intent: ${res.statusCode} - ${res.body}",
+        );
+      }
+    } catch (e) {
+      throw Exception('An error occurred while creating payment intent: $e');
     }
   }
 }
