@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:vanh_store_app/provider/user_provider.dart';
 import 'package:vanh_store_app/services/manage_http_response.dart';
 import 'package:vanh_store_app/views/screens/authentication_screens/login_screen.dart';
+import 'package:vanh_store_app/views/screens/authentication_screens/otp_screen.dart';
 import 'package:vanh_store_app/views/screens/main_screen.dart';
 
 final providerContainer = ProviderContainer();
@@ -44,7 +45,7 @@ class AuthController {
         onSuccess: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => LoginScreen()),
+            MaterialPageRoute(builder: (context) => OtpScreen(email: email)),
           );
           showSnackBar(context, 'Account has been Created for you');
         },
@@ -167,6 +168,40 @@ class AuthController {
       }
     } catch (e) {
       debugPrint('Đã xảy ra lỗi khi lấy thông tin người dùng: $e');
+    }
+  }
+
+  Future<void> verifyOtp({
+    required BuildContext context,
+    required String email,
+    required String otp,
+  }) async {
+    try {
+      http.Response res = await http.post(
+        Uri.parse('$uri/api/verify-otp'),
+        body: jsonEncode({'email': email, 'otp': otp}),
+        headers: <String, String>{
+          "Content-Type": "application/json;charset=UTF-8",
+        },
+      );
+      manageHttpResponse(
+        res: res,
+        context: context,
+        onSuccess: () {
+          showSnackBar(
+            context,
+            'OTP verified successfully. You can now log in.',
+          );
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => LoginScreen()),
+            ((route) => false),
+          );
+        },
+      );
+    } catch (e) {
+      debugPrint('Đã xảy ra lỗi khi xác minh OTP: $e');
+      showSnackBar(context, 'Đã xảy ra lỗi: $e');
     }
   }
 }
