@@ -19,10 +19,7 @@ class AccountScreen extends ConsumerWidget {
         elevation: 0,
         title: const Text(
           'Account',
-          style: TextStyle(
-            color: Colors.black87,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
       ),
@@ -33,9 +30,7 @@ class AccountScreen extends ConsumerWidget {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-              ),
+              decoration: const BoxDecoration(color: Colors.white),
               child: Column(
                 children: [
                   // Avatar
@@ -85,10 +80,7 @@ class AccountScreen extends ConsumerWidget {
                   // Email
                   Text(
                     user?.email ?? '',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 8),
                   // Address
@@ -140,9 +132,7 @@ class AccountScreen extends ConsumerWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => OrderScreen(),
-                        ),
+                        MaterialPageRoute(builder: (context) => OrderScreen()),
                       );
                     },
                   ),
@@ -195,9 +185,7 @@ class AccountScreen extends ConsumerWidget {
                     onTap: () {
                       // TODO: Navigate to Settings screen
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Settings - Coming soon'),
-                        ),
+                        const SnackBar(content: Text('Settings - Coming soon')),
                       );
                     },
                   ),
@@ -227,9 +215,7 @@ class AccountScreen extends ConsumerWidget {
                     onTap: () {
                       // TODO: Navigate to About screen
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('About - Coming soon'),
-                        ),
+                        const SnackBar(content: Text('About - Coming soon')),
                       );
                     },
                   ),
@@ -250,8 +236,9 @@ class AccountScreen extends ConsumerWidget {
                       context: context,
                       builder: (context) => AlertDialog(
                         title: const Text('Sign Out'),
-                        content:
-                            const Text('Are you sure you want to sign out?'),
+                        content: const Text(
+                          'Are you sure you want to sign out?',
+                        ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(context, false),
@@ -278,10 +265,7 @@ class AccountScreen extends ConsumerWidget {
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(
-                        color: Colors.red.shade200,
-                        width: 1,
-                      ),
+                      side: BorderSide(color: Colors.red.shade200, width: 1),
                     ),
                   ),
                   child: const Row(
@@ -291,6 +275,88 @@ class AccountScreen extends ConsumerWidget {
                       SizedBox(width: 8),
                       Text(
                         'Sign Out',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Delete Account Button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    // Show confirmation dialog with stronger warning
+                    final shouldDelete = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Row(
+                          children: [
+                            Icon(
+                              Icons.warning_rounded,
+                              color: Colors.red.shade700,
+                              size: 28,
+                            ),
+                            const SizedBox(width: 8),
+                            const Text('Delete Account'),
+                          ],
+                        ),
+                        content: const Text(
+                          'Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.red.shade700,
+                              backgroundColor: Colors.red.shade50,
+                            ),
+                            child: const Text(
+                              'Delete',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (shouldDelete == true && context.mounted) {
+                      if (user?.id != null) {
+                        await authController.deleteAccount(
+                          context: context,
+                          id: user!.id,
+                          ref: ref,
+                        );
+                      }
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red.shade700,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.delete_forever),
+                      SizedBox(width: 8),
+                      Text(
+                        'Delete Account',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -317,10 +383,7 @@ class AccountScreen extends ConsumerWidget {
     required VoidCallback onTap,
   }) {
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 20,
-        vertical: 8,
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       leading: Container(
         width: 48,
         height: 48,
@@ -328,11 +391,7 @@ class AccountScreen extends ConsumerWidget {
           color: iconColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(
-          icon,
-          color: iconColor,
-          size: 24,
-        ),
+        child: Icon(icon, color: iconColor, size: 24),
       ),
       title: Text(
         title,
@@ -344,10 +403,7 @@ class AccountScreen extends ConsumerWidget {
       ),
       subtitle: Text(
         subtitle,
-        style: TextStyle(
-          fontSize: 13,
-          color: Colors.grey[600],
-        ),
+        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
       ),
       trailing: Icon(
         Icons.arrow_forward_ios,

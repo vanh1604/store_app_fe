@@ -10,16 +10,23 @@ void manageHttpResponse({
 }) {
   switch (res.statusCode) {
     case 200:
+    case 201:
+    case 204:
       onSuccess();
       break;
     case 400:
       showSnackBar(context, json.decode(res.body)['message']);
       break;
+    case 404:
+      showSnackBar(context, json.decode(res.body)['message']);
+      break;
     case 500:
       showSnackBar(context, json.decode(res.body)['error']);
       break;
-    case 201:
-      onSuccess();
+    default:
+      debugPrint('Unhandled status code: ${res.statusCode}');
+      debugPrint('Response body: ${res.body}');
+      showSnackBar(context, 'Error: Status code ${res.statusCode}');
       break;
   }
 }
