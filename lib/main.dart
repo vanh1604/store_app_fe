@@ -3,10 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:vanh_store_app/controllers/auth_controller.dart';
-import 'package:vanh_store_app/provider/user_provider.dart';
-import 'package:vanh_store_app/views/screens/authentication_screens/login_screen.dart';
-import 'package:vanh_store_app/views/screens/main_screen.dart';
+import 'package:vanh_store_app/features/authentication/controllers/auth_controller.dart';
+import 'package:vanh_store_app/features/authentication/providers/user_provider.dart';
+import 'package:vanh_store_app/features/authentication/screens/login_screen.dart';
+import 'package:vanh_store_app/features/home/screens/main_screen.dart';
 
 // Stripe Configuration - Move to environment variables in production
 const String _stripePublishableKey =
@@ -145,17 +145,18 @@ class _AuthenticationWrapperState
       final userJson = preferences.getString('user');
 
       if (token != null && refreshToken != null && userJson != null) {
-        // Set user in provider
-        ref.read(userProvider.notifier).setUser(userJson);
+        // SECURITY FIX: Verify token is valid BEFORE setting user
+        // This ensures expired tokens cannot grant access
+        final authController = AuthController();
+        final newToken = await authController.refreshAccessToken();
 
-        // Optional: Validate or refresh token on app start
-        // This ensures the user has a valid session
-        try {
-          final authController = AuthController();
-          await authController.refreshAccessToken();
-        } catch (e) {
-          debugPrint('Token refresh failed on startup: $e');
-          // If refresh fails, clear tokens and sign out
+        if (newToken != null) {
+          // Token refresh successful - user has valid session
+          ref.read(userProvider.notifier).setUser(userJson);
+          debugPrint('Authentication verified successfully');
+        } else {
+          // Token refresh failed - clear all auth data
+          debugPrint('Token refresh failed on startup - clearing session');
           await preferences.remove('auth-token');
           await preferences.remove('refresh-token');
           await preferences.remove('user');
@@ -167,6 +168,13 @@ class _AuthenticationWrapperState
       }
     } catch (e) {
       debugPrint('Error initializing auth: $e');
+      // Clear session on any error
+      try {
+        final preferences = await SharedPreferences.getInstance();
+        await preferences.remove('auth-token');
+        await preferences.remove('refresh-token');
+        await preferences.remove('user');
+      } catch (_) {}
       ref.read(userProvider.notifier).signOut();
     } finally {
       if (mounted) {
