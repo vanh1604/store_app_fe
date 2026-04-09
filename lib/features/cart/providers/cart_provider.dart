@@ -44,6 +44,12 @@ class CartNotifier extends Notifier<Map<String, Cart>> {
     }
   }
 
+  String _cartKey(String productId, String? variantId) {
+    return variantId != null && variantId.isNotEmpty
+        ? '${productId}_$variantId'
+        : productId;
+  }
+
   void addProductToCart({
     required String productName,
     required int quantity,
@@ -55,28 +61,34 @@ class CartNotifier extends Notifier<Map<String, Cart>> {
     required String productDescription,
     required int productQuantity,
     required String fullName,
+    String? selectedSize,
+    String? variantId,
   }) {
-    if (state.containsKey(productId)) {
+    final key = _cartKey(productId, variantId);
+    if (state.containsKey(key)) {
+      final existing = state[key]!;
       state = {
         ...state,
-        productId: Cart(
-          productName: state[productId]!.productName,
-          quantity: state[productId]!.quantity + 1,
-          price: state[productId]!.price,
-          image: state[productId]!.image,
-          category: state[productId]!.category,
-          vendorId: state[productId]!.vendorId,
-          productId: state[productId]!.productId,
-          productDescription: state[productId]!.productDescription,
-          productQuantity: state[productId]!.productQuantity,
-          fullName: state[productId]!.fullName,
+        key: Cart(
+          productName: existing.productName,
+          quantity: existing.quantity + 1,
+          price: existing.price,
+          image: existing.image,
+          category: existing.category,
+          vendorId: existing.vendorId,
+          productId: existing.productId,
+          productDescription: existing.productDescription,
+          productQuantity: existing.productQuantity,
+          fullName: existing.fullName,
+          selectedSize: existing.selectedSize,
+          variantId: existing.variantId,
         ),
       };
       _savedCartItems();
     } else {
       state = {
         ...state,
-        productId: Cart(
+        key: Cart(
           productName: productName,
           quantity: quantity,
           price: price,
@@ -87,23 +99,22 @@ class CartNotifier extends Notifier<Map<String, Cart>> {
           productDescription: productDescription,
           productQuantity: productQuantity,
           fullName: fullName,
+          selectedSize: selectedSize,
+          variantId: variantId,
         ),
       };
       _savedCartItems();
     }
   }
 
-  void IncrementQuantity(String productId) {
-    if (state.containsKey(productId)) {
-      // 1. Lấy item hiện tại
-      final currentItem = state[productId]!;
-
-      // 2. Cập nhật state bằng cách tạo object Cart mới với quantity + 1
+  void IncrementQuantity(String cartKey) {
+    if (state.containsKey(cartKey)) {
+      final currentItem = state[cartKey]!;
       state = {
         ...state,
-        productId: Cart(
+        cartKey: Cart(
           productName: currentItem.productName,
-          quantity: currentItem.quantity + 1, // Tăng số lượng ở đây
+          quantity: currentItem.quantity + 1,
           price: currentItem.price,
           image: currentItem.image,
           category: currentItem.category,
@@ -112,23 +123,23 @@ class CartNotifier extends Notifier<Map<String, Cart>> {
           productDescription: currentItem.productDescription,
           productQuantity: currentItem.productQuantity,
           fullName: currentItem.fullName,
+          selectedSize: currentItem.selectedSize,
+          variantId: currentItem.variantId,
         ),
       };
       _savedCartItems();
     }
   }
 
-  void DecrementQuantity(String productId) {
-    if (state.containsKey(productId)) {
-      final currentItem = state[productId]!;
-
-      // Kiểm tra để không giảm xuống dưới 1
+  void DecrementQuantity(String cartKey) {
+    if (state.containsKey(cartKey)) {
+      final currentItem = state[cartKey]!;
       if (currentItem.quantity > 1) {
         state = {
           ...state,
-          productId: Cart(
+          cartKey: Cart(
             productName: currentItem.productName,
-            quantity: currentItem.quantity - 1, // Giảm số lượng ở đây
+            quantity: currentItem.quantity - 1,
             price: currentItem.price,
             image: currentItem.image,
             category: currentItem.category,
@@ -137,21 +148,22 @@ class CartNotifier extends Notifier<Map<String, Cart>> {
             productDescription: currentItem.productDescription,
             productQuantity: currentItem.productQuantity,
             fullName: currentItem.fullName,
+            selectedSize: currentItem.selectedSize,
+            variantId: currentItem.variantId,
           ),
         };
         _savedCartItems();
       } else {
-        // Tuỳ chọn: Nếu số lượng là 1 mà bấm trừ thì xoá luôn sản phẩm
-        removeProduct(productId);
-        _savedCartItems();
+        removeProduct(cartKey);
       }
     }
   }
 
-  void removeProduct(String productId) {
-    if (state.containsKey(productId)) {
-      state.remove(productId);
-      state = {...state};
+  void removeProduct(String cartKey) {
+    if (state.containsKey(cartKey)) {
+      final newState = Map<String, Cart>.from(state);
+      newState.remove(cartKey);
+      state = newState;
       _savedCartItems();
     }
   }

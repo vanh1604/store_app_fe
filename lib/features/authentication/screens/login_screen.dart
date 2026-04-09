@@ -5,7 +5,7 @@ import 'package:vanh_store_app/features/authentication/controllers/auth_controll
 import 'package:vanh_store_app/features/authentication/screens/register_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
-  LoginScreen({super.key});
+  const LoginScreen({super.key});
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
@@ -120,6 +120,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   SizedBox(height: 20),
                   TextFormField(
+                    obscureText: true,
                     onChanged: (value) {
                       password = value;
                     },

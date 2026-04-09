@@ -308,6 +308,26 @@ class _OrderCard extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
+        if (order.orderedAt != null) ...[
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Icon(Icons.access_time, size: 13, color: Colors.grey.shade500),
+              const SizedBox(width: 4),
+              Text(
+                '${order.orderedAt!.day.toString().padLeft(2, '0')}/'
+                '${order.orderedAt!.month.toString().padLeft(2, '0')}/'
+                '${order.orderedAt!.year}  '
+                '${order.orderedAt!.hour.toString().padLeft(2, '0')}:'
+                '${order.orderedAt!.minute.toString().padLeft(2, '0')}',
+                style: GoogleFonts.lato(
+                  color: Colors.grey.shade500,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }

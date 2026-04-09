@@ -62,6 +62,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           processing: false,
           delivered: false,
           context: context,
+          selectedSize: item.selectedSize,
+          variantId: item.variantId,
         );
 
         if (orderId != null) {
@@ -93,7 +95,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       // Step 4: Present payment sheet
       await Stripe.instance.presentPaymentSheet();
 
-      // Step 5: Payment successful!
+      // Step 5: Payment successful! Update all orders to processing=true
+      for (String orderId in createdOrderIds) {
+        await orderController.updateOrderProcessing(
+          orderId: orderId,
+          processing: true,
+          context: context,
+        );
+      }
 
       // Clear cart after successful payment
       cartProviderNotifier.clearCart();
@@ -382,7 +391,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                       decoration: BoxDecoration(
                                         color: Color(0xFFBCC5FF),
                                       ),
-                                      child: Image.network(cartItem.image[0]),
+                                      child: Image.network(
+                                        cartItem.image[0],
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stack) => const Icon(
+                                          Icons.image_not_supported,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
                                     ),
                                     SizedBox(width: 11),
                                     Expanded(
@@ -537,6 +553,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                           processing: true,
                           delivered: false,
                           context: context,
+                          selectedSize: item.selectedSize,
+                          variantId: item.variantId,
                         );
                       },
                     ).then((value) {

@@ -1,8 +1,11 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vanh_store_app/core/services/notification_service.dart';
 import 'package:vanh_store_app/features/authentication/controllers/auth_controller.dart';
 import 'package:vanh_store_app/features/authentication/providers/user_provider.dart';
 import 'package:vanh_store_app/features/authentication/screens/login_screen.dart';
@@ -18,6 +21,15 @@ void main() async {
 
   // Configure System UI
   _configureSystemUI();
+
+  // Initialize Firebase (requires google-services.json in android/app/)
+  try {
+    await Firebase.initializeApp();
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    debugPrint('Firebase initialised successfully');
+  } catch (e) {
+    debugPrint('Firebase initialisation failed (google-services.json missing?): $e');
+  }
 
   // Initialize Stripe
   await _initializeStripe();
@@ -63,6 +75,7 @@ class MyApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       title: 'Vanh Store',
       theme: _buildAppTheme(),
+      navigatorKey: NotificationService.navigatorKey,
       home: const AuthenticationWrapper(),
     );
   }
@@ -154,6 +167,8 @@ class _AuthenticationWrapperState
           // Token refresh successful - user has valid session
           ref.read(userProvider.notifier).setUser(userJson);
           debugPrint('Authentication verified successfully');
+          // Initialize notifications for restored sessions (ref.listen misses this transition)
+          NotificationService.initialize();
         } else {
           // Token refresh failed - clear all auth data
           debugPrint('Token refresh failed on startup - clearing session');
@@ -199,6 +214,13 @@ class _AuthenticationWrapperState
         ),
       );
     }
+
+    // Initialise push notifications whenever the user logs in (or session is restored)
+    ref.listen<dynamic>(userProvider, (previous, next) {
+      if (previous == null && next != null) {
+        NotificationService.initialize();
+      }
+    });
 
     // Watch user provider and navigate accordingly
     final user = ref.watch(userProvider);

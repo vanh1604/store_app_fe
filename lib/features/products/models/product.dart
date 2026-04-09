@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:vanh_store_app/features/products/models/product_variant.dart';
 
 class Product {
   final String id;
@@ -13,6 +14,7 @@ class Product {
   final List<String> images;
   final double averageRating;
   final int totalRatings;
+  final List<ProductVariant> variants;
 
   Product({
     required this.id,
@@ -27,7 +29,11 @@ class Product {
     required this.fullName,
     this.averageRating = 0.0,
     this.totalRatings = 0,
+    this.variants = const [],
   });
+
+  bool get hasVariants => variants.isNotEmpty;
+
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'id': id,
@@ -42,6 +48,7 @@ class Product {
       'fullName': fullName,
       'averageRating': averageRating,
       'totalRatings': totalRatings,
+      'variants': variants.map((v) => v.toMap()).toList(),
     };
   }
 
@@ -61,6 +68,11 @@ class Product {
       fullName: map['fullName'] ?? '',
       averageRating: map['averageRating']?.toDouble() ?? 0.0,
       totalRatings: map['totalRatings']?.toInt() ?? 0,
+      variants: map['variants'] != null
+          ? List<ProductVariant>.from(
+              (map['variants'] as List).map((v) => ProductVariant.fromMap(v)),
+            )
+          : [],
     );
   }
 }

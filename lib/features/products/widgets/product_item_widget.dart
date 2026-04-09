@@ -52,6 +52,11 @@ class _ProductItemWidgetState extends ConsumerState<ProductItemWidget> {
                     widget.product!.images[0],
                     height: 170,
                     fit: BoxFit.cover,
+                    errorBuilder: (context, error, stack) => Container(
+                      height: 170,
+                      color: Colors.grey[200],
+                      child: const Icon(Icons.image_not_supported, color: Colors.grey),
+                    ),
                   ),
                   Positioned(
                     top: 5,

@@ -47,3 +47,4 @@ app.*.map.json
 # AI Config files
 CLAUDE.md
 .clinerules
+lib/core/config/host_config.g.dart

@@ -20,8 +20,11 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
     with SingleTickerProviderStateMixin {
   late Product _productData;
   bool _isLoading = true;
+  bool _hasError = false;
   int _currentImageIndex = 0;
   int _selectedQuantity = 1;
+  String? _selectedVariantId;
+  String? _selectedSize;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
@@ -62,6 +65,7 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
       if (mounted) {
         setState(() {
           _isLoading = false;
+          _hasError = true;
         });
       }
     }
@@ -84,7 +88,13 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
     final favoriteProviderData = ref.read(favoriteProvider.notifier);
     ref.watch(favoriteProvider);
     final cartData = ref.watch(cartProvider);
-    final isInCart = cartData.containsKey(widget.productId);
+
+    // Determine effective cart key for the current selection
+    final productId = widget.productId ?? '';
+    final effectiveCartKey = _selectedVariantId != null
+        ? '${productId}_$_selectedVariantId'
+        : productId;
+    final isInCart = cartData.containsKey(effectiveCartKey);
 
     if (_isLoading) {
       return Scaffold(
@@ -102,6 +112,33 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
                   fontSize: 16,
                   color: Colors.grey[600],
                 ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_hasError) {
+      return Scaffold(
+        appBar: AppBar(backgroundColor: Colors.white, elevation: 0),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
+              SizedBox(height: 16),
+              Text(
+                'Không thể tải sản phẩm',
+                style: GoogleFonts.quicksand(fontSize: 18, color: Colors.grey[600]),
+              ),
+              SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() { _isLoading = true; _hasError = false; });
+                  _fetchProductData();
+                },
+                child: Text('Thử lại'),
               ),
             ],
           ),
@@ -192,6 +229,7 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
                 children: [
                   _buildProductHeader(),
                   _buildRatingSection(),
+                  if (_productData.hasVariants) _buildSizeSelector(),
                   _buildStockInfo(),
                   _buildQuantitySelector(),
                   _buildVendorInfo(),
@@ -240,6 +278,10 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
                     child: Image.network(
                       _productData.images[index],
                       fit: BoxFit.cover,
+                      errorBuilder: (context, error, stack) => Container(
+                        color: Colors.grey[200],
+                        child: const Icon(Icons.image_not_supported, color: Colors.grey),
+                      ),
                     ),
                   ),
                 ),
@@ -317,7 +359,16 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '\$${_productData.price.toStringAsFixed(2)}',
+                () {
+                  if (_selectedVariantId != null) {
+                    final variant = _productData.variants.firstWhere(
+                      (v) => v.id == _selectedVariantId,
+                      orElse: () => _productData.variants.first,
+                    );
+                    return '\$${variant.price.toStringAsFixed(2)}';
+                  }
+                  return '\$${_productData.price.toStringAsFixed(2)}';
+                }(),
                 style: GoogleFonts.quicksand(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
@@ -421,7 +472,17 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
   }
 
   Widget _buildStockInfo() {
-    final inStock = _productData.quantity > 0;
+    int stockQty;
+    if (_selectedVariantId != null) {
+      final variant = _productData.variants.firstWhere(
+        (v) => v.id == _selectedVariantId,
+        orElse: () => _productData.variants.first,
+      );
+      stockQty = variant.quantity;
+    } else {
+      stockQty = _productData.quantity;
+    }
+    final inStock = stockQty > 0;
     return Padding(
       padding: EdgeInsets.all(20),
       child: Row(
@@ -436,9 +497,7 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
           ),
           SizedBox(width: 8),
           Text(
-            inStock
-                ? '${_productData.quantity} items in stock'
-                : 'Out of stock',
+            inStock ? '$stockQty items in stock' : 'Out of stock',
             style: GoogleFonts.quicksand(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -497,13 +556,25 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
                 ),
                 _buildQuantityButton(
                   icon: Icons.add,
-                  onPressed: _selectedQuantity < _productData.quantity
-                      ? () {
-                          setState(() {
-                            _selectedQuantity++;
-                          });
-                        }
-                      : null,
+                  onPressed: () {
+                    int maxQty;
+                    if (_selectedVariantId != null) {
+                      final variant = _productData.variants.firstWhere(
+                        (v) => v.id == _selectedVariantId,
+                        orElse: () => _productData.variants.first,
+                      );
+                      maxQty = variant.quantity;
+                    } else {
+                      maxQty = _productData.quantity;
+                    }
+                    return _selectedQuantity < maxQty
+                        ? () {
+                            setState(() {
+                              _selectedQuantity++;
+                            });
+                          }
+                        : null;
+                  }(),
                 ),
               ],
             ),
@@ -849,6 +920,88 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
     );
   }
 
+  Widget _buildSizeSelector() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Chọn Size',
+            style: GoogleFonts.quicksand(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1A1A1A),
+            ),
+          ),
+          SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _productData.variants.map((variant) {
+              final isSelected = _selectedVariantId == variant.id;
+              final isOutOfStock = variant.quantity == 0;
+              return GestureDetector(
+                onTap: isOutOfStock
+                    ? null
+                    : () {
+                        setState(() {
+                          _selectedVariantId = variant.id;
+                          _selectedSize = variant.label; // "M / Đỏ" hoặc "M"
+                          _selectedQuantity = 1;
+                        });
+                      },
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? Color(0xFF3C55EF)
+                        : isOutOfStock
+                            ? Colors.grey[100]
+                            : Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isSelected
+                          ? Color(0xFF3C55EF)
+                          : isOutOfStock
+                              ? Colors.grey[300]!
+                              : Colors.grey[300]!,
+                      width: isSelected ? 2 : 1,
+                    ),
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Text(
+                        variant.label,
+                        style: GoogleFonts.quicksand(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: isSelected
+                              ? Colors.white
+                              : isOutOfStock
+                                  ? Colors.grey[400]
+                                  : Color(0xFF1A1A1A),
+                        ),
+                      ),
+                      if (isOutOfStock)
+                        Positioned.fill(
+                          child: CustomPaint(
+                            painter: _StrikethroughPainter(),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
   Widget _buildBottomBar(bool isInCart, cartproviderData) {
     return Container(
       padding: EdgeInsets.all(20),
@@ -875,23 +1028,38 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
                   onTap: isInCart
                       ? null
                       : () {
+                          if (_productData.hasVariants && _selectedVariantId == null) {
+                            showSnackBar(context, 'Vui lòng chọn size trước khi thêm vào giỏ');
+                            return;
+                          }
+                          double effectivePrice = _productData.price;
+                          int effectiveStock = _productData.quantity;
+                          if (_selectedVariantId != null) {
+                            final variant = _productData.variants.firstWhere(
+                              (v) => v.id == _selectedVariantId,
+                            );
+                            effectivePrice = variant.price;
+                            effectiveStock = variant.quantity;
+                          }
                           for (int i = 0; i < _selectedQuantity; i++) {
                             cartproviderData.addProductToCart(
                               productName: _productData.name,
                               quantity: 1,
-                              price: _productData.price,
+                              price: effectivePrice,
                               image: _productData.images,
                               category: _productData.category,
                               vendorId: _productData.vendorId,
                               productId: _productData.id,
                               productDescription: _productData.description,
-                              productQuantity: _productData.quantity,
+                              productQuantity: effectiveStock,
                               fullName: _productData.fullName,
+                              selectedSize: _selectedSize,
+                              variantId: _selectedVariantId,
                             );
                           }
                           showSnackBar(
                             context,
-                            'Added ${_selectedQuantity}x ${_productData.name} to cart',
+                            'Added ${_selectedQuantity}x ${_productData.name}${_selectedSize != null ? ' (Size: $_selectedSize)' : ''} to cart',
                           );
                         },
                   borderRadius: BorderRadius.circular(16),
@@ -926,4 +1094,17 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
       ),
     );
   }
+}
+
+class _StrikethroughPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.grey[400]!
+      ..strokeWidth = 1.5;
+    canvas.drawLine(Offset(0, size.height), Offset(size.width, 0), paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

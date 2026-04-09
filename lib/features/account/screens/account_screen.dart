@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vanh_store_app/features/authentication/controllers/auth_controller.dart';
 import 'package:vanh_store_app/features/authentication/providers/user_provider.dart';
 import 'package:vanh_store_app/features/orders/screens/order_screen.dart';
+import 'package:vanh_store_app/features/orders/screens/shipping_address_screen.dart';
 
 class AccountScreen extends ConsumerWidget {
   AccountScreen({super.key});
@@ -160,10 +161,10 @@ class AccountScreen extends ConsumerWidget {
                     subtitle: 'Manage your delivery addresses',
                     iconColor: Colors.green,
                     onTap: () {
-                      // TODO: Navigate to Shipping Address screen
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Shipping Address - Coming soon'),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ShippingAddressScreen(),
                         ),
                       );
                     },

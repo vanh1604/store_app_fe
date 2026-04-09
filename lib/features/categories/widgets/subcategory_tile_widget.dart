@@ -22,7 +22,12 @@ class SubcategoryTileWidget extends StatelessWidget {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(50),
-            child: Image.network(image, fit: BoxFit.cover),
+            child: Image.network(
+              image,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stack) =>
+                  const Icon(Icons.image_not_supported, color: Colors.white),
+            ),
           ),
         ),
         SizedBox(height: 8),

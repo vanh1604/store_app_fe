@@ -2,14 +2,14 @@ import 'dart:io';
 
 String getBaseUrl() {
   if (Platform.isAndroid) {
-    // Dành cho Android Emulator
+    // Android Emulator truy cập host qua 10.0.2.2
     return 'http://10.0.2.2:3000';
   } else if (Platform.isIOS) {
-    // Dành cho iOS Simulator
-    return 'http://localhost:3000';
+    // iOS Simulator: kHostIp = 'localhost'
+    // iPhone thật: kHostIp = IP Mac (được inject bởi Xcode pre-action)
+    return 'http://172.20.10.2:3000';
   } else {
-    // Fallback cho các trường hợp khác
-    return 'http://localhost:3000';
+    return 'http://172.20.10.2:3000';
   }
 }
 

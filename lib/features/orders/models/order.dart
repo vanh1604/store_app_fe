@@ -16,6 +16,9 @@ class Order {
   final String vendorId;
   final bool processing;
   final bool delivered;
+  final DateTime? orderedAt;
+  final String? selectedSize;
+  final String? variantId;
 
   Order({
     required this.id,
@@ -33,6 +36,9 @@ class Order {
     required this.vendorId,
     required this.processing,
     required this.delivered,
+    this.orderedAt,
+    this.selectedSize,
+    this.variantId,
   });
 
   Map<String, dynamic> toMap() => <String, dynamic>{
@@ -51,6 +57,8 @@ class Order {
     'vendorId': vendorId,
     'processing': processing,
     'delivered': delivered,
+    if (selectedSize != null) 'selectedSize': selectedSize,
+    if (variantId != null) 'variantId': variantId,
   };
   String toJson() => json.encode(toMap());
 
@@ -71,6 +79,9 @@ class Order {
       vendorId: map['vendorId'],
       processing: map['processing'],
       delivered: map['delivered'],
+      orderedAt: map['orderedAt'] != null ? DateTime.tryParse(map['orderedAt'].toString()) : null,
+      selectedSize: map['selectedSize'],
+      variantId: map['variantId'],
     );
   }
 }

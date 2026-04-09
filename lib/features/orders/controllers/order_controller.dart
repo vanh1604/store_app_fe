@@ -24,6 +24,8 @@ class OrderController {
     required bool processing,
     required bool delivered,
     required context,
+    String? selectedSize,
+    String? variantId,
   }) async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -44,6 +46,8 @@ class OrderController {
         vendorId: vendorId,
         processing: processing,
         delivered: delivered,
+        selectedSize: selectedSize,
+        variantId: variantId,
       );
       http.Response res = await http.post(
         Uri.parse("$uri/api/createorder"),
@@ -117,6 +121,32 @@ class OrderController {
       );
     } catch (e) {
       print("Error: $e");
+    }
+  }
+
+  Future<void> updateOrderProcessing({
+    required String orderId,
+    required bool processing,
+    required context,
+  }) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String token = prefs.getString("auth-token") ?? "";
+      http.Response res = await http.patch(
+        Uri.parse("$uri/api/orders/$orderId/processing"),
+        headers: <String, String>{
+          "Content-Type": "application/json; charset=UTF-8",
+          "Authorization": "Bearer $token",
+        },
+        body: jsonEncode({'processing': processing}),
+      );
+      if (res.statusCode != 200) {
+        throw Exception(
+          "Failed to update order processing: ${res.statusCode} - ${res.body}",
+        );
+      }
+    } catch (e) {
+      showSnackBar(context, e.toString());
     }
   }
 

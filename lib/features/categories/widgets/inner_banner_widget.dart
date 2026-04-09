@@ -10,7 +10,11 @@ class InnerBannerWidget extends StatelessWidget {
       width: MediaQuery.of(context).size.width,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: Image.network(imageUrl, fit: BoxFit.cover),
+        child: Image.network(
+          imageUrl,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stack) => Container(color: Colors.grey[200]),
+        ),
       ),
     );
   }

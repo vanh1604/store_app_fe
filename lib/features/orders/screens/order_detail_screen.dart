@@ -79,6 +79,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                       width: 58,
                                       height: 67,
                                       fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stack) => Container(
+                                        width: 58,
+                                        height: 67,
+                                        color: Colors.grey[200],
+                                        child: const Icon(Icons.image_not_supported, color: Colors.grey, size: 20),
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -133,6 +139,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                               fontSize: 12,
                                             ),
                                           ),
+                                          if (order.selectedSize != null) ...[
+                                            SizedBox(height: 4),
+                                            Text(
+                                              "Size: ${order.selectedSize}",
+                                              style: GoogleFonts.montserrat(
+                                                color: Color(0xFF3C55EF),
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
                                         ],
                                       ),
                                     ),
@@ -204,7 +221,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: Container(
               width: 336,
-              height: order.delivered == true ? 170 : 120,
               decoration: BoxDecoration(
                 color: Colors.white,
                 border: Border.all(color: Color(0xFFEFF0F2)),
@@ -246,6 +262,20 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                           "Order ID: ${order.id}",
                           style: GoogleFonts.lato(fontWeight: FontWeight.bold),
                         ),
+                        if (order.orderedAt != null) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            'Ordered: ${order.orderedAt!.day.toString().padLeft(2, '0')}/'
+                            '${order.orderedAt!.month.toString().padLeft(2, '0')}/'
+                            '${order.orderedAt!.year}  '
+                            '${order.orderedAt!.hour.toString().padLeft(2, '0')}:'
+                            '${order.orderedAt!.minute.toString().padLeft(2, '0')}',
+                            style: GoogleFonts.lato(
+                              color: Colors.grey.shade600,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),

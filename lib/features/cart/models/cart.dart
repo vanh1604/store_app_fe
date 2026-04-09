@@ -11,6 +11,8 @@ class Cart {
   final String productDescription;
   final int productQuantity;
   final String fullName;
+  final String? selectedSize;
+  final String? variantId;
 
   Cart({
     required this.productName,
@@ -23,6 +25,8 @@ class Cart {
     required this.productDescription,
     required this.productQuantity,
     required this.fullName,
+    this.selectedSize,
+    this.variantId,
   });
 
   Map<String, dynamic> toMap() {
@@ -37,6 +41,8 @@ class Cart {
       'productDescription': productDescription,
       'productQuantity': productQuantity,
       'fullName': fullName,
+      'selectedSize': selectedSize,
+      'variantId': variantId,
     };
   }
 
@@ -44,7 +50,7 @@ class Cart {
     return Cart(
       productName: map['productName'],
       quantity: map['quantity'],
-      price: map['price'],
+      price: (map['price'] as num).toDouble(),
       image: List<String>.from(map['image']),
       category: map['category'],
       vendorId: map['vendorId'],
@@ -52,6 +58,8 @@ class Cart {
       productDescription: map['productDescription'],
       productQuantity: map['productQuantity'],
       fullName: map['fullName'],
+      selectedSize: map['selectedSize'],
+      variantId: map['variantId'],
     );
   }
   String toJson() => json.encode(toMap());
