@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vanh_store_app/features/authentication/controllers/auth_controller.dart';
 import 'package:vanh_store_app/features/authentication/providers/user_provider.dart';
+import 'package:vanh_store_app/features/account/screens/edit_profile_screen.dart';
 import 'package:vanh_store_app/features/orders/screens/order_screen.dart';
 import 'package:vanh_store_app/features/orders/screens/shipping_address_screen.dart';
 
@@ -145,10 +146,10 @@ class AccountScreen extends ConsumerWidget {
                     subtitle: 'Update your personal information',
                     iconColor: Colors.blue,
                     onTap: () {
-                      // TODO: Navigate to Edit Profile screen
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Edit Profile - Coming soon'),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const EditProfileScreen(),
                         ),
                       );
                     },

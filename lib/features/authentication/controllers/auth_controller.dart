@@ -223,6 +223,47 @@ class AuthController {
     }
   }
 
+  Future<void> updateUserProfile({
+    required BuildContext context,
+    required String id,
+    required String fullName,
+    required String state,
+    required String city,
+    required String locality,
+    required WidgetRef ref,
+  }) async {
+    try {
+      final res = await ApiService.authenticatedRequest(
+        method: 'PUT',
+        endpoint: '/api/userInfo/$id',
+        body: {
+          'fullName': fullName,
+          'state': state,
+          'city': city,
+          'locality': locality,
+        },
+      );
+
+      manageHttpResponse(
+        res: res,
+        context: context,
+        onSuccess: () async {
+          final responseMap = jsonDecode(res.body);
+          final userMap = responseMap['user'];
+          final correctUserJson = jsonEncode(userMap);
+          ref.read(userProvider.notifier).setUser(correctUserJson);
+          SharedPreferences preferences = await SharedPreferences.getInstance();
+          await preferences.setString('user', correctUserJson);
+          showSnackBar(context, 'Profile updated successfully');
+          Navigator.pop(context); // Go back after success
+        },
+      );
+    } catch (e) {
+      debugPrint('Error updating profile: $e');
+      showSnackBar(context, 'An error occurred: $e');
+    }
+  }
+
   Future<void> getUserInformation(String id) async {
     try {
       // Use ApiService for automatic token refresh
