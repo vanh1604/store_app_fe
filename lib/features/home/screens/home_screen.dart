@@ -13,21 +13,29 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(
-          MediaQuery.of(context).size.height * 0.2,
-        ),
-        child: HeaderWidget(),
-      ),
-      body: ListView(
+      backgroundColor: const Color(0xFFF9F9F9), // Light background for contrast
+      body: Column(
         children: [
-          BannerWidget(),
-          CategoryItemWidget(),
-          ReusableTextWidget(title: 'Popular Products', subtitle: 'View All'),
-          PopularProductsWidget(),
-          SizedBox(height: 20),
-          ReusableTextWidget(title: 'Top Rated Products', subtitle: 'View All'),
-          TopRatingProductsWidget(),
+          const HeaderWidget(), // Flexible header at the top
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.only(bottom: 80), // Padding for FAB
+              children: [
+                const SizedBox(height: 10),
+                const BannerWidget(),
+                const SizedBox(height: 20),
+                const CategoryItemWidget(),
+                const SizedBox(height: 25),
+                const ReusableTextWidget(title: 'Popular Products'),
+                const SizedBox(height: 10),
+                const PopularProductsWidget(),
+                const SizedBox(height: 25),
+                const ReusableTextWidget(title: 'Top Rated Products'),
+                const SizedBox(height: 10),
+                const TopRatingProductsWidget(),
+              ],
+            ),
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -38,6 +46,8 @@ class HomeScreen extends StatelessWidget {
           );
         },
         backgroundColor: Colors.purple,
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         tooltip: 'Trợ lý AI',
         child: const Icon(Icons.smart_toy, color: Colors.white),
       ),

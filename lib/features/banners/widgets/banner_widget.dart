@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vanh_store_app/features/banners/controllers/banner_controller.dart';
@@ -47,10 +48,11 @@ class _BannerWidgetState extends ConsumerState<BannerWidget> {
           itemBuilder: (context, index) {
             return ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                banners[index].image,
+              child: CachedNetworkImage(
+                imageUrl: banners[index].image,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stack) => Container(color: Colors.grey[200]),
+                placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                errorWidget: (context, url, error) => Container(color: Colors.grey[200]),
               ),
             );
           },

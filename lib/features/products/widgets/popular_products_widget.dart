@@ -34,7 +34,7 @@ class _PopularProductsWidgetState extends ConsumerState<PopularProductsWidget> {
   Widget build(BuildContext context) {
     final popularProducts = ref.watch(productProvider);
     return SizedBox(
-      height: 250,
+      height: 220,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: popularProducts.length,

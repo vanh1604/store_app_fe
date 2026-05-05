@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
@@ -322,10 +323,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                       Positioned(
                                         left: 11,
                                         top: 11,
-                                        child: Image.network(
+                                        child: CachedNetworkImage(
+                                          imageUrl: 'https://storage.googleapis.com/codeless-dev.appspot.com/uploads%2Fimages%2Fnn2Ldqjoc2Xp89Y7Wfzf%2F2ee3a5ce3b02828d0e2806584a6baa88.png',
                                           height: 26,
                                           width: 26,
-                                          'https://storage.googleapis.com/codeless-dev.appspot.com/uploads%2Fimages%2Fnn2Ldqjoc2Xp89Y7Wfzf%2F2ee3a5ce3b02828d0e2806584a6baa88.png',
+                                          placeholder: (context, url) => const CircularProgressIndicator(),
+                                          errorWidget: (context, url, error) => const Icon(Icons.error),
                                         ),
                                       ),
                                     ],
@@ -339,10 +342,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       Positioned(
                         left: 305,
                         top: 25,
-                        child: Image.network(
+                        child: CachedNetworkImage(
+                          imageUrl: 'https://firebasestorage.googleapis.com/v0/b/codeless-app.appspot.com/o/projects%2Fnn2Ldqjoc2Xp89Y7Wfzf%2F6ce18a0efc6e889de2f2878027c689c9caa53feeedit%201.png?alt=media&token=a3a8a999-80d5-4a2e-a9b7-a43a7fa8789a',
                           width: 20,
                           height: 20,
-                          'https://firebasestorage.googleapis.com/v0/b/codeless-app.appspot.com/o/projects%2Fnn2Ldqjoc2Xp89Y7Wfzf%2F6ce18a0efc6e889de2f2878027c689c9caa53feeedit%201.png?alt=media&token=a3a8a999-80d5-4a2e-a9b7-a43a7fa8789a',
+                          placeholder: (context, url) => const CircularProgressIndicator(),
+                          errorWidget: (context, url, error) => const Icon(Icons.error),
                         ),
                       ),
                     ],
@@ -391,10 +396,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                       decoration: BoxDecoration(
                                         color: Color(0xFFBCC5FF),
                                       ),
-                                      child: Image.network(
-                                        cartItem.image[0],
+                                      child: CachedNetworkImage(
+                                        imageUrl: cartItem.image[0],
                                         fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stack) => const Icon(
+                                        placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                                        errorWidget: (context, url, error) => const Icon(
                                           Icons.image_not_supported,
                                           color: Colors.grey,
                                         ),

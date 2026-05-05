@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vanh_store_app/features/chat/models/chat_product.dart';
@@ -39,12 +40,13 @@ class ProductCardChat extends StatelessWidget {
             ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
               child: thumbnail != null
-                  ? Image.network(
-                      thumbnail,
+                  ? CachedNetworkImage(
+                      imageUrl: thumbnail,
                       height: 100,
                       width: 140,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stack) => _placeholder(),
+                      placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                      errorWidget: (context, url, error) => _placeholder(),
                     )
                   : _placeholder(),
             ),

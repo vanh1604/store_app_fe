@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -86,10 +87,11 @@ class _VendorStoreDetailScreenState
             ),
             flexibleSpace: FlexibleSpaceBar(
               background: widget.vendor.storeImage.isNotEmpty
-                  ? Image.network(
-                      widget.vendor.storeImage,
+                  ? CachedNetworkImage(
+                      imageUrl: widget.vendor.storeImage,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
+                      placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                      errorWidget: (context, url, error) {
                         return Container(
                           color: Colors.grey[300],
                           child: Icon(

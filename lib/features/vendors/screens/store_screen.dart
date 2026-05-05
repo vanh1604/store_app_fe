@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vanh_store_app/features/vendors/controllers/vendor_controller.dart';
@@ -154,32 +155,18 @@ class _StoreScreenState extends ConsumerState<StoreScreen> {
                   topRight: Radius.circular(12),
                 ),
                 child: vendor.storeImage.isNotEmpty
-                    ? Image.network(
-                        vendor.storeImage,
+                    ? CachedNetworkImage(
+                        imageUrl: vendor.storeImage,
                         width: double.infinity,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
+                        placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                        errorWidget: (context, url, error) {
                           return Container(
                             color: Colors.grey[300],
                             child: Icon(
                               Icons.store,
                               size: 50,
                               color: Colors.grey[500],
-                            ),
-                          );
-                        },
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Container(
-                            color: Colors.grey[200],
-                            child: Center(
-                              child: CircularProgressIndicator(
-                                value: loadingProgress.expectedTotalBytes !=
-                                        null
-                                    ? loadingProgress.cumulativeBytesLoaded /
-                                        loadingProgress.expectedTotalBytes!
-                                    : null,
-                              ),
                             ),
                           );
                         },

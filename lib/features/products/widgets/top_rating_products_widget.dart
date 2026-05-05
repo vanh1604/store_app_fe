@@ -35,7 +35,7 @@ class _TopRatingProductsWidgetState
   Widget build(BuildContext context) {
     final topRatedProducts = ref.watch(topRatedProductProvider);
     return SizedBox(
-      height: 250,
+      height: 230,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: topRatedProducts.length,

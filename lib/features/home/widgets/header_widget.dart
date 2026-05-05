@@ -6,89 +6,94 @@ class HeaderWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return Container(
       width: MediaQuery.of(context).size.width,
-      height: MediaQuery.of(context).size.height * 0.14,
-      child: Stack(
-        children: [
-          Image.asset(
-            'assets/icons/searchBanner.jpeg',
-            width: MediaQuery.of(context).size.width,
-            fit: BoxFit.cover,
-          ),
-          Positioned(
-            left: 48,
-            top: 68,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const SearchScreen(),
-                  ),
-                );
-              },
-              child: SizedBox(
-                width: 250,
-                height: 50,
-                child: TextField(
-                  enabled: false,
-                  decoration: InputDecoration(
-                    labelText: 'Enter text',
-                    hintStyle: TextStyle(fontSize: 14, color: Color(0xFF7F7F7F)),
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 16,
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage('assets/icons/searchBanner.jpeg'),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SearchScreen(),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
                     ),
-                    prefixIcon: Image.asset('assets/icons/searc1.png'),
-                    suffixIcon: Image.asset('assets/icons/cam.png'),
-                    fillColor: Colors.grey.shade200,
-                    filled: true,
-                    focusColor: Colors.black,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            left: 311,
-            top: 78,
-            child: Material(
-              type: MaterialType.transparency,
-              child: InkWell(
-                onTap: () {},
-                child: Ink(
-                  width: 31,
-                  height: 31,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage('assets/icons/bell.png'),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            left: 354,
-            top: 78,
-            child: Material(
-              type: MaterialType.transparency,
-              child: InkWell(
-                onTap: () {},
-                child: Ink(
-                  width: 31,
-                  height: 31,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage('assets/icons/message.png'),
+                    child: Row(
+                      children: [
+                        const SizedBox(width: 14),
+                        Image.asset('assets/icons/searc1.png', width: 22, height: 22),
+                        const SizedBox(width: 10),
+                        const Expanded(
+                          child: Text(
+                            'What are you looking for?',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF7F7F7F),
+                              fontWeight: FontWeight.w500,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Image.asset('assets/icons/cam.png', width: 22, height: 22),
+                        const SizedBox(width: 14),
+                      ],
                     ),
                   ),
                 ),
               ),
-            ),
+              const SizedBox(width: 16),
+              _buildIconButton('assets/icons/bell.png', () {}),
+              const SizedBox(width: 12),
+              _buildIconButton('assets/icons/message.png', () {}),
+            ],
           ),
-        ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIconButton(String assetPath, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Image.asset(assetPath, width: 22, height: 22),
       ),
     );
   }

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:custom_rating_bar/custom_rating_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -74,12 +75,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                   Positioned(
                                     left: 10,
                                     top: 5,
-                                    child: Image.network(
-                                      order.image,
+                                    child: CachedNetworkImage(
+                                      imageUrl: order.image,
                                       width: 58,
                                       height: 67,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stack) => Container(
+                                      placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                                      errorWidget: (context, url, error) => Container(
                                         width: 58,
                                         height: 67,
                                         color: Colors.grey[200],

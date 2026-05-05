@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -22,10 +23,11 @@ class SubcategoryTileWidget extends StatelessWidget {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(50),
-            child: Image.network(
-              image,
+            child: CachedNetworkImage(
+              imageUrl: image,
               fit: BoxFit.cover,
-              errorBuilder: (context, error, stack) =>
+              placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+              errorWidget: (context, url, error) =>
                   const Icon(Icons.image_not_supported, color: Colors.white),
             ),
           ),

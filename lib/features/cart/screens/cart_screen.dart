@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -327,10 +328,11 @@ class _CartItemCard extends StatelessWidget {
                 width: 100,
                 height: 100,
                 color: Colors.grey.shade100,
-                child: Image.network(
-                  cartItem.image[0],
+                child: CachedNetworkImage(
+                  imageUrl: cartItem.image[0],
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Icon(
+                  placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                  errorWidget: (context, url, error) => Icon(
                     Icons.broken_image,
                     size: 50,
                     color: Colors.grey.shade400,

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -236,11 +237,12 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen> {
                             ),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(12),
-                              child: Image.network(
-                                _selectedCategory!.banner,
+                              child: CachedNetworkImage(
+                                imageUrl: _selectedCategory!.banner,
                                 fit: BoxFit.cover,
                                 width: double.infinity,
-                                errorBuilder: (context, error, stackTrace) {
+                                placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                                errorWidget: (context, url, error) {
                                   return Container(
                                     color: Colors.grey.shade200,
                                     child: Center(

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -263,10 +264,11 @@ class _OrderCard extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: Image.network(
-          order.image,
+        child: CachedNetworkImage(
+          imageUrl: order.image,
           fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => Icon(
+          placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+          errorWidget: (context, url, error) => Icon(
             Icons.image_not_supported_outlined,
             size: 40,
             color: Colors.grey.shade400,

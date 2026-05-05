@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -293,11 +294,12 @@ class _SearchScreenState extends State<SearchScreen> {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-                  child: Image.network(
-                    product.images.isNotEmpty ? product.images[0] : '',
+                  child: CachedNetworkImage(
+                    imageUrl: product.images.isNotEmpty ? product.images[0] : '',
                     fit: BoxFit.cover,
                     width: double.infinity,
-                    errorBuilder: (context, error, stackTrace) {
+                    placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                    errorWidget: (context, url, error) {
                       return Center(
                         child: Icon(
                           Icons.image_not_supported,

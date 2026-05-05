@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -275,10 +276,11 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(20),
-                    child: Image.network(
-                      _productData.images[index],
+                    child: CachedNetworkImage(
+                      imageUrl: _productData.images[index],
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stack) => Container(
+                      placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                      errorWidget: (context, url, error) => Container(
                         color: Colors.grey[200],
                         child: const Icon(Icons.image_not_supported, color: Colors.grey),
                       ),
@@ -801,12 +803,13 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                  child: Image.network(
-                    product.images.isNotEmpty ? product.images[0] : '',
+                  child: CachedNetworkImage(
+                    imageUrl: product.images.isNotEmpty ? product.images[0] : '',
                     height: 140,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
+                    placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                    errorWidget: (context, url, error) => Container(
                       height: 140,
                       color: Colors.grey[200],
                       child: Icon(Icons.image_not_supported, color: Colors.grey[400]),

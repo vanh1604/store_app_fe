@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -48,11 +49,12 @@ class _ProductItemWidgetState extends ConsumerState<ProductItemWidget> {
               ),
               child: Stack(
                 children: [
-                  Image.network(
-                    widget.product!.images[0],
+                  CachedNetworkImage(
+                    imageUrl: widget.product!.images[0],
                     height: 170,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stack) => Container(
+                    placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                    errorWidget: (context, url, error) => Container(
                       height: 170,
                       color: Colors.grey[200],
                       child: const Icon(Icons.image_not_supported, color: Colors.grey),

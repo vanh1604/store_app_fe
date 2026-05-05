@@ -121,7 +121,7 @@ class _InnerCategoryContentWidgetState
                 }
               },
             ),
-            ReusableTextWidget(title: 'Popular Product', subtitle: 'View All'),
+            ReusableTextWidget(title: 'Popular Product'),
             FutureBuilder<List<Product>>(
               future: _futureProducts,
               builder: (context, snapshot) {

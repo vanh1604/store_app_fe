@@ -2,14 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class ReusableTextWidget extends StatelessWidget {
-  const ReusableTextWidget({
-    super.key,
-
-    required this.title,
-    required this.subtitle,
-  });
+  const ReusableTextWidget({super.key, required this.title});
   final String title;
-  final String subtitle;
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -22,14 +17,6 @@ class ReusableTextWidget extends StatelessWidget {
             style: GoogleFonts.quicksand(
               fontWeight: FontWeight.bold,
               fontSize: 16,
-            ),
-          ),
-          Text(
-            subtitle,
-            style: GoogleFonts.quicksand(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-              color: Colors.blue,
             ),
           ),
         ],
