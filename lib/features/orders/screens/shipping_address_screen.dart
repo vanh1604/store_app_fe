@@ -14,10 +14,11 @@ class ShippingAddressScreen extends ConsumerStatefulWidget {
 class _ShippingAddressScreenState extends ConsumerState<ShippingAddressScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final AuthController _authController = AuthController();
-  late TextEditingController _stateController;
-  late TextEditingController _cityController;
-  late TextEditingController _localityController;
-  _showloadingDialog() {
+  late TextEditingController _provinceController;
+  late TextEditingController _districtController;
+  late TextEditingController _wardController;
+  late TextEditingController _addressController;
+  void _showloadingDialog() {
     showDialog(
       context: context,
       builder: (context) {
@@ -46,16 +47,18 @@ class _ShippingAddressScreenState extends ConsumerState<ShippingAddressScreen> {
     super.initState();
 
     final user = ref.read(userProvider);
-    _stateController = TextEditingController(text: user?.state ?? "");
-    _cityController = TextEditingController(text: user?.city ?? "");
-    _localityController = TextEditingController(text: user?.locality ?? "");
+    _provinceController = TextEditingController(text: user?.province ?? "");
+    _districtController = TextEditingController(text: user?.district ?? "");
+    _wardController = TextEditingController(text: user?.ward ?? "");
+    _addressController = TextEditingController(text: user?.address ?? "");
   }
 
   @override
   void dispose() {
-    _stateController.dispose();
-    _cityController.dispose();
-    _localityController.dispose();
+    _addressController.dispose();
+    _districtController.dispose();
+    _provinceController.dispose();
+    _wardController.dispose();
     super.dispose();
   }
 
@@ -95,33 +98,53 @@ class _ShippingAddressScreenState extends ConsumerState<ShippingAddressScreen> {
                   textAlign: TextAlign.center,
                 ),
                 TextFormField(
-                  decoration: InputDecoration(labelText: 'State'),
-                  controller: _stateController,
+                  decoration: InputDecoration(
+                    labelText: 'Tỉnh/Thành phố (Province/City)',
+                  ),
+                  controller: _provinceController,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your state';
+                      return 'Please enter your province';
                     }
+                    return null;
                   },
                 ),
                 SizedBox(height: 15),
                 TextFormField(
-                  decoration: InputDecoration(labelText: 'City'),
+                  decoration: InputDecoration(
+                    labelText: 'Quận/Huyện (District)',
+                  ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your city';
+                      return 'Please enter your district';
                     }
+                    return null;
                   },
-                  controller: _cityController,
+                  controller: _districtController,
                 ),
                 SizedBox(height: 15),
                 TextFormField(
-                  decoration: InputDecoration(labelText: 'locality'),
+                  decoration: InputDecoration(labelText: 'Phường/Xã (Ward)'),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your locality';
+                      return 'Please enter your ward';
                     }
+                    return null;
                   },
-                  controller: _localityController,
+                  controller: _wardController,
+                ),
+                SizedBox(height: 15),
+                TextFormField(
+                  decoration: InputDecoration(
+                    labelText: 'Số nhà, Tên đường (Address)',
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your address';
+                    }
+                    return null;
+                  },
+                  controller: _addressController,
                 ),
                 SizedBox(height: 30),
               ],
@@ -151,15 +174,17 @@ class _ShippingAddressScreenState extends ConsumerState<ShippingAddressScreen> {
                     ref: ref,
                     context: context,
                     id: user.id,
-                    state: _stateController.text,
-                    city: _cityController.text,
-                    locality: _localityController.text,
+                    province: _provinceController.text,
+                    district: _districtController.text,
+                    ward: _wardController.text,
+                    address: _addressController.text,
                   )
                   .whenComplete(() {
                     updateUser.updateUser(
-                      userState: _stateController.text,
-                      city: _cityController.text,
-                      locality: _localityController.text,
+                      province: _provinceController.text,
+                      district: _districtController.text,
+                      ward: _wardController.text,
+                      address: _addressController.text,
                     );
                     Navigator.of(context).pop(); // Close loading dialog
                     Navigator.pop(context);

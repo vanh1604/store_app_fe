@@ -1006,6 +1006,16 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
   }
 
   Widget _buildBottomBar(bool isInCart, cartproviderData) {
+    int effectiveStock = _productData.quantity;
+    if (_selectedVariantId != null) {
+      final variant = _productData.variants.firstWhere(
+        (v) => v.id == _selectedVariantId,
+        orElse: () => _productData.variants.first,
+      );
+      effectiveStock = variant.quantity;
+    }
+    final bool isOutOfStock = effectiveStock == 0;
+
     return Container(
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -1023,12 +1033,12 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
           children: [
             Expanded(
               child: Material(
-                color: isInCart ? Colors.grey[300] : Color(0xFF3C55EF),
+                color: (isInCart || isOutOfStock) ? Colors.grey[300] : Color(0xFF3C55EF),
                 borderRadius: BorderRadius.circular(16),
-                elevation: isInCart ? 0 : 4,
+                elevation: (isInCart || isOutOfStock) ? 0 : 4,
                 shadowColor: Color(0xFF3C55EF).withValues(alpha: 0.4),
                 child: InkWell(
-                  onTap: isInCart
+                  onTap: (isInCart || isOutOfStock)
                       ? null
                       : () {
                           if (_productData.hasVariants && _selectedVariantId == null) {
@@ -1036,13 +1046,11 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
                             return;
                           }
                           double effectivePrice = _productData.price;
-                          int effectiveStock = _productData.quantity;
                           if (_selectedVariantId != null) {
                             final variant = _productData.variants.firstWhere(
                               (v) => v.id == _selectedVariantId,
                             );
                             effectivePrice = variant.price;
-                            effectiveStock = variant.quantity;
                           }
                           for (int i = 0; i < _selectedQuantity; i++) {
                             cartproviderData.addProductToCart(
@@ -1072,17 +1080,17 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          isInCart ? Icons.check_circle : Icons.shopping_bag,
-                          color: isInCart ? Colors.grey[600] : Colors.white,
+                          isOutOfStock ? Icons.remove_shopping_cart : (isInCart ? Icons.check_circle : Icons.shopping_bag),
+                          color: (isInCart || isOutOfStock) ? Colors.grey[600] : Colors.white,
                           size: 22,
                         ),
                         SizedBox(width: 12),
                         Text(
-                          isInCart ? 'Already in Cart' : 'Add to Cart',
+                          isOutOfStock ? 'Out of Stock' : (isInCart ? 'Already in Cart' : 'Add to Cart'),
                           style: GoogleFonts.quicksand(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: isInCart ? Colors.grey[600] : Colors.white,
+                            color: (isInCart || isOutOfStock) ? Colors.grey[600] : Colors.white,
                             letterSpacing: 0.5,
                           ),
                         ),

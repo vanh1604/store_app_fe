@@ -8,10 +8,12 @@ class UserNotifier extends Notifier<User?> {
     return User(
       id: '',
       fullName: '',
-      state: '',
-      city: '',
-      locality: '',
+      province: '',
+      district: '',
+      ward: '',
+      address: '',
       email: '',
+      number: '',
       password: '',
       token: '',
     );
@@ -28,18 +30,21 @@ class UserNotifier extends Notifier<User?> {
   }
 
   void updateUser({
-    required String userState,
-    required String city,
-    required String locality,
+    required String province,
+    required String district,
+    required String ward,
+    required String address,
   }) {
     if (state != null) {
       state = User(
         id: state!.id,
         fullName: state!.fullName,
-        state: userState,
-        city: city,
-        locality: locality,
+        province: province,
+        district: district,
+        ward: ward,
+        address: address,
         email: state!.email,
+        number: state!.number,
         password: state!.password,
         token: state!.token,
       );

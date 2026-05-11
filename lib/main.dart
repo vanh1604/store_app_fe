@@ -59,6 +59,9 @@ void _configureSystemUI() {
 Future<void> _initializeStripe() async {
   try {
     Stripe.publishableKey = _stripePublishableKey;
+    // To use Apple Pay, a merchant identifier is required.
+    // Replace this with your actual Apple Pay merchant identifier for production.
+    Stripe.merchantIdentifier = 'merchant.vanh.store.app';
     await Stripe.instance.applySettings();
     debugPrint('Stripe initialized successfully');
   } catch (e) {

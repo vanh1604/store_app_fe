@@ -1,19 +1,20 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:vanh_store_app/core/config/global_variables.dart';
 import 'package:vanh_store_app/features/orders/models/order.dart';
 import 'package:vanh_store_app/core/services/http_response_handler.dart';
+import 'package:vanh_store_app/core/services/api_service.dart';
 
 class OrderController {
   Future<String?> uploadOrders({
     required String id,
     required String fullName,
     required String email,
-    required String state,
-    required String city,
-    required String locality,
+    required String province,
+    required String district,
+    required String ward,
+    required String address,
+    required String productId,
     required String productName,
     required int quantity,
     required double productPrice,
@@ -28,15 +29,15 @@ class OrderController {
     String? variantId,
   }) async {
     try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String token = prefs.getString("auth-token") ?? "";
       final Order order = Order(
         id: id,
         fullName: fullName,
         email: email,
-        state: state,
-        city: city,
-        locality: locality,
+        province: province,
+        district: district,
+        ward: ward,
+        address: address,
+        productId: productId,
         productName: productName,
         quantity: quantity,
         productPrice: productPrice,
@@ -49,14 +50,13 @@ class OrderController {
         selectedSize: selectedSize,
         variantId: variantId,
       );
-      http.Response res = await http.post(
-        Uri.parse("$uri/api/createorder"),
-        headers: <String, String>{
-          "Content-Type": "application/json; charset=UTF-8",
-          "Authorization": "Bearer $token",
-        },
-        body: order.toJson(),
+
+      http.Response res = await ApiService.authenticatedRequest(
+        method: 'POST',
+        endpoint: '/api/createorder',
+        body: jsonDecode(order.toJson()),
       );
+
       if (res.statusCode == 200 || res.statusCode == 201) {
         final responseData = jsonDecode(res.body);
         final String? orderId = responseData['order']?['_id'];
@@ -78,22 +78,20 @@ class OrderController {
 
   Future<List<Order>> loadOrders({required String buyerId}) async {
     try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String token = prefs.getString("auth-token") ?? "";
-      http.Response res = await http.get(
-        Uri.parse("$uri/api/orders/buyers/$buyerId"),
-        headers: <String, String>{
-          "Content-Type": "application/json; charset=UTF-8",
-          "Authorization": "Bearer $token",
-        },
+      http.Response res = await ApiService.authenticatedRequest(
+        method: 'GET',
+        endpoint: '/api/orders/buyers/$buyerId',
       );
+
       if (res.statusCode == 200) {
         final Map<String, dynamic> responseData = jsonDecode(res.body);
         final List<dynamic> data = responseData['orders'];
         List<Order> orders = data.map((order) => Order.fromMap(order)).toList();
         return orders;
       } else {
-        throw Exception("Failed to load orders");
+        throw Exception(
+          "Failed to load orders: ${res.statusCode} - ${res.body}",
+        );
       }
     } catch (e) {
       print("Error: $e");
@@ -103,15 +101,11 @@ class OrderController {
 
   Future<void> deleteOrder({required String orderId, required context}) async {
     try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String token = prefs.getString("auth-token") ?? "";
-      http.Response res = await http.delete(
-        Uri.parse("$uri/api/orders/$orderId"),
-        headers: <String, String>{
-          "Content-Type": "application/json; charset=UTF-8",
-          "Authorization": "Bearer $token",
-        },
+      http.Response res = await ApiService.authenticatedRequest(
+        method: 'DELETE',
+        endpoint: '/api/orders/$orderId',
       );
+
       manageHttpResponse(
         res: res,
         context: context,
@@ -130,16 +124,12 @@ class OrderController {
     required context,
   }) async {
     try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String token = prefs.getString("auth-token") ?? "";
-      http.Response res = await http.patch(
-        Uri.parse("$uri/api/orders/$orderId/processing"),
-        headers: <String, String>{
-          "Content-Type": "application/json; charset=UTF-8",
-          "Authorization": "Bearer $token",
-        },
-        body: jsonEncode({'processing': processing}),
+      http.Response res = await ApiService.authenticatedRequest(
+        method: 'PATCH',
+        endpoint: '/api/orders/$orderId/processing',
+        body: {'processing': processing},
       );
+
       if (res.statusCode != 200) {
         throw Exception(
           "Failed to update order processing: ${res.statusCode} - ${res.body}",
@@ -156,21 +146,18 @@ class OrderController {
     required orderId,
   }) async {
     try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String token = prefs.getString("auth-token") ?? "";
       final requestBody = {
         'amount': amount,
         'currency': currency,
         'orderId': orderId,
       };
-      http.Response res = await http.post(
-        Uri.parse("$uri/api/orders/payment"),
-        headers: <String, String>{
-          "Content-Type": "application/json; charset=UTF-8",
-          "Authorization": "Bearer $token",
-        },
-        body: jsonEncode(requestBody),
+
+      http.Response res = await ApiService.authenticatedRequest(
+        method: 'POST',
+        endpoint: '/api/orders/payment',
+        body: requestBody,
       );
+
       if (res.statusCode == 200 || res.statusCode == 201) {
         return jsonDecode(res.body);
       } else {

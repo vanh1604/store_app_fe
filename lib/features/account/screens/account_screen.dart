@@ -86,9 +86,10 @@ class AccountScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                   // Address
-                  if (user?.locality.isNotEmpty == true ||
-                      user?.city.isNotEmpty == true ||
-                      user?.state.isNotEmpty == true)
+                  if (user?.ward.isNotEmpty == true ||
+                      user?.district.isNotEmpty == true ||
+                      user?.province.isNotEmpty == true ||
+                      user?.address.isNotEmpty == true)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -101,9 +102,10 @@ class AccountScreen extends ConsumerWidget {
                         Flexible(
                           child: Text(
                             [
-                              user?.locality,
-                              user?.city,
-                              user?.state,
+                              user?.address,
+                              user?.ward,
+                              user?.district,
+                              user?.province,
                             ].where((e) => e?.isNotEmpty == true).join(', '),
                             style: TextStyle(
                               fontSize: 13,

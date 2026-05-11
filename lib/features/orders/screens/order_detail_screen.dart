@@ -247,7 +247,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          '${order.state}, ${order.city}, ${order.locality}',
+                          '${order.address}, ${order.ward}, ${order.district}, ${order.province}',
                           style: GoogleFonts.lato(
                             letterSpacing: 1.5,
                             fontWeight: FontWeight.w500,

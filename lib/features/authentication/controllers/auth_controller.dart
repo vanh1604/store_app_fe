@@ -26,10 +26,12 @@ class AuthController {
       User user = User(
         id: "",
         fullName: fullName,
-        state: "",
-        city: "",
-        locality: "",
+        province: "",
+        district: "",
+        ward: "",
+        address: "",
         email: email,
+        number: "",
         password: password,
         token: '',
       );
@@ -190,15 +192,21 @@ class AuthController {
   Future<void> updateUserLocation({
     required BuildContext context,
     required String id,
-    required String state,
-    required String city,
-    required String locality,
+    required String province,
+    required String district,
+    required String ward,
+    required String address,
     required WidgetRef ref,
   }) async {
     try {
       final res = await http.put(
         Uri.parse('$uri/api/users/$id'),
-        body: jsonEncode({'state': state, 'city': city, 'locality': locality}),
+        body: jsonEncode({
+          'province': province,
+          'district': district,
+          'ward': ward,
+          'address': address,
+        }),
         headers: <String, String>{
           "Content-Type": "application/json;charset=UTF-8",
         },
@@ -227,9 +235,11 @@ class AuthController {
     required BuildContext context,
     required String id,
     required String fullName,
-    required String state,
-    required String city,
-    required String locality,
+    required String province,
+    required String district,
+    required String ward,
+    required String address,
+    required String number,
     required WidgetRef ref,
   }) async {
     try {
@@ -238,9 +248,11 @@ class AuthController {
         endpoint: '/api/userInfo/$id',
         body: {
           'fullName': fullName,
-          'state': state,
-          'city': city,
-          'locality': locality,
+          'province': province,
+          'district': district,
+          'ward': ward,
+          'address': address,
+          'number': number,
         },
       );
 

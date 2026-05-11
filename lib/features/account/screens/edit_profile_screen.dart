@@ -16,26 +16,32 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   bool _isLoading = false;
 
   late TextEditingController _fullNameController;
-  late TextEditingController _stateController;
-  late TextEditingController _cityController;
-  late TextEditingController _localityController;
+  late TextEditingController _provinceController;
+  late TextEditingController _districtController;
+  late TextEditingController _wardController;
+  late TextEditingController _addressController;
+  late TextEditingController _numberController;
 
   @override
   void initState() {
     super.initState();
     final user = ref.read(userProvider);
     _fullNameController = TextEditingController(text: user?.fullName ?? '');
-    _stateController = TextEditingController(text: user?.state ?? '');
-    _cityController = TextEditingController(text: user?.city ?? '');
-    _localityController = TextEditingController(text: user?.locality ?? '');
+    _provinceController = TextEditingController(text: user?.province ?? '');
+    _districtController = TextEditingController(text: user?.district ?? '');
+    _wardController = TextEditingController(text: user?.ward ?? '');
+    _addressController = TextEditingController(text: user?.address ?? '');
+    _numberController = TextEditingController(text: user?.number ?? '');
   }
 
   @override
   void dispose() {
     _fullNameController.dispose();
-    _stateController.dispose();
-    _cityController.dispose();
-    _localityController.dispose();
+    _provinceController.dispose();
+    _districtController.dispose();
+    _wardController.dispose();
+    _addressController.dispose();
+    _numberController.dispose();
     super.dispose();
   }
 
@@ -51,9 +57,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         context: context,
         id: user!.id,
         fullName: _fullNameController.text.trim(),
-        state: _stateController.text.trim(),
-        city: _cityController.text.trim(),
-        locality: _localityController.text.trim(),
+        province: _provinceController.text.trim(),
+        district: _districtController.text.trim(),
+        ward: _wardController.text.trim(),
+        address: _addressController.text.trim(),
+        number: _numberController.text.trim(),
         ref: ref,
       );
 
@@ -74,7 +82,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
         titleTextStyle: const TextStyle(
-            color: Colors.black, fontSize: 18, fontWeight: FontWeight.bold),
+          color: Colors.black,
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
@@ -96,21 +107,39 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               ),
               const SizedBox(height: 20),
               _buildTextField(
-                controller: _stateController,
-                label: 'State',
+                controller: _provinceController,
+                label: 'Tỉnh/Thành phố (Province/City)',
                 icon: Icons.map_outlined,
               ),
               const SizedBox(height: 20),
               _buildTextField(
-                controller: _cityController,
-                label: 'City',
+                controller: _districtController,
+                label: 'Quận/Huyện (District)',
                 icon: Icons.location_city_outlined,
               ),
               const SizedBox(height: 20),
               _buildTextField(
-                controller: _localityController,
-                label: 'Locality/Address',
+                controller: _wardController,
+                label: 'Phường/Xã (Ward)',
                 icon: Icons.home_work_outlined,
+              ),
+              const SizedBox(height: 20),
+              _buildTextField(
+                controller: _addressController,
+                label: 'Số nhà, Tên đường (Address)',
+                icon: Icons.home_outlined,
+              ),
+              const SizedBox(height: 20),
+              _buildTextField(
+                controller: _numberController,
+                label: 'Số điện thoại (Phone Number)',
+                icon: Icons.phone_outlined,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please enter your phone number';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 40),
               SizedBox(

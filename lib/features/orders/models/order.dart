@@ -4,9 +4,12 @@ class Order {
   final String id;
   final String fullName;
   final String email;
-  final String state;
-  final String city;
-  final String locality;
+  final String province;
+  final String district;
+  final String ward;
+  final String address;
+  final String productId;
+
   final String productName;
   final int quantity;
   final double productPrice;
@@ -24,9 +27,11 @@ class Order {
     required this.id,
     required this.fullName,
     required this.email,
-    required this.state,
-    required this.city,
-    required this.locality,
+    required this.province,
+    required this.district,
+    required this.ward,
+    required this.address,
+    required this.productId,
     required this.productName,
     required this.quantity,
     required this.productPrice,
@@ -45,9 +50,11 @@ class Order {
     'id': id,
     'fullName': fullName,
     'email': email,
-    'state': state,
-    'city': city,
-    'locality': locality,
+    'province': province,
+    'district': district,
+    'ward': ward,
+    'address': address,
+    'productId': productId,
     'productName': productName,
     'quantity': quantity,
     'productPrice': productPrice,
@@ -64,21 +71,23 @@ class Order {
 
   factory Order.fromMap(Map<String, dynamic> map) {
     return Order(
-      id: map['_id'],
-      fullName: map['fullName'],
-      email: map['email'],
-      state: map['state'],
-      city: map['city'],
-      locality: map['locality'],
-      productName: map['productName'],
-      quantity: map['quantity'],
-      productPrice: (map['productPrice'] as num).toDouble(),
-      category: map['category'],
-      image: map['image'],
-      buyerId: map['buyerId'],
-      vendorId: map['vendorId'],
-      processing: map['processing'],
-      delivered: map['delivered'],
+      id: map['_id'] ?? map['id'] ?? '',
+      fullName: map['fullName'] ?? '',
+      email: map['email'] ?? '',
+      province: map['province'] ?? '',
+      district: map['district'] ?? '',
+      ward: map['ward'] ?? '',
+      address: map['address'] ?? '',
+      productId: map['productId'] ?? '',
+      productName: map['productName'] ?? '',
+      quantity: map['quantity'] ?? 0,
+      productPrice: (map['productPrice'] ?? 0).toDouble(),
+      category: map['category'] ?? '',
+      image: map['image'] ?? '',
+      buyerId: map['buyerId'] ?? '',
+      vendorId: map['vendorId'] ?? '',
+      processing: map['processing'] ?? false,
+      delivered: map['delivered'] ?? false,
       orderedAt: map['orderedAt'] != null ? DateTime.tryParse(map['orderedAt'].toString()) : null,
       selectedSize: map['selectedSize'],
       variantId: map['variantId'],

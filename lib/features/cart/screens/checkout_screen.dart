@@ -19,6 +19,7 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   String selectedPaymentMethod = 'stripe';
+  bool _isLoading = false;
   final OrderController orderController = OrderController();
   Future<void> handleStripePayment(BuildContext context) async {
     List<String> createdOrderIds = [];
@@ -29,12 +30,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       final user = ref.read(userProvider);
 
       // Show loading indicator
-      if (!context.mounted) return;
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => Center(child: CircularProgressIndicator()),
-      );
+      if (!mounted) return;
+      setState(() {
+        _isLoading = true;
+      });
 
       // Calculate total amount from cart
       double totalAmount = 0;
@@ -43,6 +42,16 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       });
       // Convert to cents for Stripe (amount should be in smallest currency unit)
       int amountInCents = (totalAmount * 100).toInt();
+
+      // Stripe minimum amount is 50 cents
+      if (amountInCents < 50) {
+        amountInCents = 50;
+      }
+
+      print("DEBUG: Cart Items: ${cartProviderNotifier.getCartItems.length}");
+      print("DEBUG: Total Amount: $totalAmount");
+      print("DEBUG: Amount in Cents: $amountInCents");
+
       // Step 1: Create orders first with processing=false (pending payment)
       for (var entry in cartProviderNotifier.getCartItems.entries) {
         var item = entry.value;
@@ -50,9 +59,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           id: '',
           fullName: user!.fullName,
           email: user.email,
-          state: user.state,
-          city: user.city,
-          locality: user.locality,
+          province: user.province,
+          district: user.district,
+          ward: user.ward,
+          address: user.address,
+          productId: item.productId,
           productName: item.productName,
           quantity: item.quantity,
           productPrice: item.price,
@@ -62,9 +73,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           vendorId: item.vendorId,
           processing: false,
           delivered: false,
-          context: context,
           selectedSize: item.selectedSize,
           variantId: item.variantId,
+          context: context,
         );
 
         if (orderId != null) {
@@ -77,24 +88,61 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         throw Exception("Failed to create orders");
       }
 
-      // Step 2: Create payment intent with first orderId
+      // Step 2: Create payment intent with first orderId and total amount
+      print("Creating payment intent for amount: $amountInCents");
       final paymentIntentData = await orderController.createPaymentIntent(
         amount: amountInCents,
         currency: 'usd',
         orderId: createdOrderIds.first,
       );
 
+      if (paymentIntentData['clientSecret'] == null) {
+        throw Exception("Failed to get clientSecret from server");
+      }
+
       // Step 3: Initialize payment sheet
-      await Stripe.instance.initPaymentSheet(
-        paymentSheetParameters: SetupPaymentSheetParameters(
-          paymentIntentClientSecret: paymentIntentData['clientSecret'],
-          merchantDisplayName: 'Vanh Store',
-          style: ThemeMode.light,
-        ),
-      );
+      try {
+        print("Initializing payment sheet...");
+        await Stripe.instance.initPaymentSheet(
+          paymentSheetParameters: SetupPaymentSheetParameters(
+            paymentIntentClientSecret: paymentIntentData['clientSecret'],
+            merchantDisplayName: 'Vanh Store',
+            style: ThemeMode.light,
+            applePay: const PaymentSheetApplePay(merchantCountryCode: 'VN'),
+            googlePay: const PaymentSheetGooglePay(
+              merchantCountryCode: 'VN',
+              testEnv: true,
+            ),
+          ),
+        );
+      } catch (e) {
+        print("Error initializing payment sheet: $e");
+        throw Exception("Stripe initialization failed: $e");
+      }
+
+      // Hide loading BEFORE presenting payment sheet
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
 
       // Step 4: Present payment sheet
-      await Stripe.instance.presentPaymentSheet();
+      try {
+        print("Presenting payment sheet...");
+        await Stripe.instance.presentPaymentSheet();
+        print("Payment sheet presented and completed.");
+      } catch (e) {
+        print("Error presenting payment sheet: $e");
+        rethrow; // Re-throw to be caught by StripeException or catch-all
+      }
+
+      // Show loading again for order updates
+      if (mounted) {
+        setState(() {
+          _isLoading = true;
+        });
+      }
 
       // Step 5: Payment successful! Update all orders to processing=true
       for (String orderId in createdOrderIds) {
@@ -108,9 +156,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       // Clear cart after successful payment
       cartProviderNotifier.clearCart();
 
-      // Close loading dialog
-      if (!context.mounted) return;
-      Navigator.pop(context);
+      // Close loading
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
 
       if (!context.mounted) return;
       showSnackBar(context, 'Payment successful! Order placed successfully');
@@ -123,6 +174,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       );
     } on StripeException catch (e) {
       // Payment failed or cancelled - delete created orders
+      if (mounted) {
+        setState(() {
+          _isLoading = true;
+        });
+      }
 
       for (String orderId in createdOrderIds) {
         try {
@@ -132,19 +188,26 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         }
       }
 
-      // Close loading dialog
-      if (context.mounted) {
-        Navigator.pop(context);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
       }
 
       print("Stripe error: ${e.error.localizedMessage}");
       if (!context.mounted) return;
       showSnackBar(
         context,
-        'Payment cancelled or failed: ${e.error.localizedMessage}',
+        'Payment cancelled or failed: ${e.error.localizedMessage ?? "Unknown Stripe error"}',
       );
     } catch (e) {
       // Error occurred - delete created orders
+      if (mounted) {
+        setState(() {
+          _isLoading = true;
+        });
+      }
+
       print("Error occurred. Deleting created orders...");
       for (String orderId in createdOrderIds) {
         try {
@@ -155,9 +218,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         }
       }
 
-      // Close loading dialog
-      if (context.mounted) {
-        Navigator.pop(context);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
       }
 
       print("Error: $e");
@@ -230,7 +294,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                         alignment: Alignment.centerLeft,
                                         child: SizedBox(
                                           width: 114,
-                                          child: user!.state.isNotEmpty
+                                          child: user!.province.isNotEmpty
                                               ? Text(
                                                   'Address',
                                                   style: TextStyle(
@@ -252,9 +316,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                       const SizedBox(height: 4),
                                       Align(
                                         alignment: Alignment.centerLeft,
-                                        child: user.state.isNotEmpty
+                                        child: user.address.isNotEmpty
                                             ? Text(
-                                                user.state,
+                                                '${user.address}, ${user.ward}',
                                                 style: GoogleFonts.lato(
                                                   fontSize: 14,
                                                   fontWeight: FontWeight.bold,
@@ -272,9 +336,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                       ),
                                       Align(
                                         alignment: Alignment.centerLeft,
-                                        child: user.city.isNotEmpty
+                                        child: user.district.isNotEmpty
                                             ? Text(
-                                                user.city,
+                                                '${user.district}, ${user.province}',
                                                 style: GoogleFonts.lato(
                                                   fontSize: 14,
                                                   fontWeight: FontWeight.bold,
@@ -324,11 +388,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                         left: 11,
                                         top: 11,
                                         child: CachedNetworkImage(
-                                          imageUrl: 'https://storage.googleapis.com/codeless-dev.appspot.com/uploads%2Fimages%2Fnn2Ldqjoc2Xp89Y7Wfzf%2F2ee3a5ce3b02828d0e2806584a6baa88.png',
+                                          imageUrl:
+                                              'https://storage.googleapis.com/codeless-dev.appspot.com/uploads%2Fimages%2Fnn2Ldqjoc2Xp89Y7Wfzf%2F2ee3a5ce3b02828d0e2806584a6baa88.png',
                                           height: 26,
                                           width: 26,
-                                          placeholder: (context, url) => const CircularProgressIndicator(),
-                                          errorWidget: (context, url, error) => const Icon(Icons.error),
+                                          placeholder: (context, url) =>
+                                              const CircularProgressIndicator(),
+                                          errorWidget: (context, url, error) =>
+                                              const Icon(Icons.error),
                                         ),
                                       ),
                                     ],
@@ -343,11 +410,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                         left: 305,
                         top: 25,
                         child: CachedNetworkImage(
-                          imageUrl: 'https://firebasestorage.googleapis.com/v0/b/codeless-app.appspot.com/o/projects%2Fnn2Ldqjoc2Xp89Y7Wfzf%2F6ce18a0efc6e889de2f2878027c689c9caa53feeedit%201.png?alt=media&token=a3a8a999-80d5-4a2e-a9b7-a43a7fa8789a',
+                          imageUrl:
+                              'https://firebasestorage.googleapis.com/v0/b/codeless-app.appspot.com/o/projects%2Fnn2Ldqjoc2Xp89Y7Wfzf%2F6ce18a0efc6e889de2f2878027c689c9caa53feeedit%201.png?alt=media&token=a3a8a999-80d5-4a2e-a9b7-a43a7fa8789a',
                           width: 20,
                           height: 20,
-                          placeholder: (context, url) => const CircularProgressIndicator(),
-                          errorWidget: (context, url, error) => const Icon(Icons.error),
+                          placeholder: (context, url) =>
+                              const CircularProgressIndicator(),
+                          errorWidget: (context, url, error) =>
+                              const Icon(Icons.error),
                         ),
                       ),
                     ],
@@ -399,11 +469,16 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                       child: CachedNetworkImage(
                                         imageUrl: cartItem.image[0],
                                         fit: BoxFit.cover,
-                                        placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                                        errorWidget: (context, url, error) => const Icon(
-                                          Icons.image_not_supported,
-                                          color: Colors.grey,
-                                        ),
+                                        placeholder: (context, url) =>
+                                            const Center(
+                                              child:
+                                                  CircularProgressIndicator(),
+                                            ),
+                                        errorWidget: (context, url, error) =>
+                                            const Icon(
+                                              Icons.image_not_supported,
+                                              color: Colors.grey,
+                                            ),
                                       ),
                                     ),
                                     SizedBox(width: 11),
@@ -512,7 +587,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: user.state.isEmpty
+        child: user.district.isEmpty
             ? TextButton(
                 onPressed: () {
                   Navigator.push(
@@ -534,68 +609,81 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 ),
               )
             : InkWell(
-                onTap: () async {
-                  if (selectedPaymentMethod == "stripe") {
-                    await handleStripePayment(context);
-                  } else {
-                    await Future.forEach(
-                      cartProviderNotifier.getCartItems.entries,
-                      (entry) {
-                        var item = entry.value;
-                        orderController.uploadOrders(
-                          id: '',
-                          fullName: ref.read(userProvider)!.fullName,
-                          email: ref.read(userProvider)!.email,
-                          state: ref.read(userProvider)!.state,
-                          city: ref.read(userProvider)!.city,
-                          locality: ref.read(userProvider)!.locality,
-                          productName: item.productName,
-                          quantity: item.quantity,
-                          productPrice: item.price,
-                          category: item.category,
-                          image: item.image[0],
-                          buyerId: ref.read(userProvider)!.id,
-                          vendorId: item.vendorId,
-                          processing: true,
-                          delivered: false,
-                          context: context,
-                          selectedSize: item.selectedSize,
-                          variantId: item.variantId,
-                        );
+                onTap: _isLoading
+                    ? null
+                    : () async {
+                        if (selectedPaymentMethod == "stripe") {
+                          await handleStripePayment(context);
+                        } else {
+                          await Future.forEach(
+                            cartProviderNotifier.getCartItems.entries,
+                            (entry) {
+                              var item = entry.value;
+                              orderController.uploadOrders(
+                                id: '',
+                                fullName: ref.read(userProvider)!.fullName,
+                                email: ref.read(userProvider)!.email,
+                                province: ref.read(userProvider)!.province,
+                                district: ref.read(userProvider)!.district,
+                                ward: ref.read(userProvider)!.ward,
+                                address: ref.read(userProvider)!.address,
+                                productId: item.productId,
+                                productName: item.productName,
+                                quantity: item.quantity,
+                                productPrice: item.price,
+                                category: item.category,
+                                image: item.image[0],
+                                buyerId: ref.read(userProvider)!.id,
+                                vendorId: item.vendorId,
+                                processing: true,
+                                delivered: false,
+                                context: context,
+                                selectedSize: item.selectedSize,
+                                variantId: item.variantId,
+                              );
+                            },
+                          ).then((value) {
+                            cartProviderNotifier.clearCart();
+                            showSnackBar(context, 'Order placed successfully');
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return MainScreen();
+                                },
+                              ),
+                            );
+                          });
+                        }
                       },
-                    ).then((value) {
-                      cartProviderNotifier.clearCart();
-                      showSnackBar(context, 'Order placed successfully');
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) {
-                            return MainScreen();
-                          },
-                        ),
-                      );
-                    });
-                  }
-                },
                 child: Container(
                   width: 338,
                   height: 58,
                   decoration: BoxDecoration(
-                    color: Color(0xFF3854EE),
+                    color: _isLoading ? Colors.grey : Color(0xFF3854EE),
                     borderRadius: BorderRadius.circular(15),
                   ),
 
                   child: Center(
-                    child: Text(
-                      selectedPaymentMethod == "stripe"
-                          ? 'Pay Now'
-                          : 'Place Order',
-                      style: GoogleFonts.montserrat(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : Text(
+                            selectedPaymentMethod == "stripe"
+                                ? 'Pay Now'
+                                : 'Place Order',
+                            style: GoogleFonts.montserrat(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
                   ),
                 ),
               ),
