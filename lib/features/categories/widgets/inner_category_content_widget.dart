@@ -135,7 +135,7 @@ class _InnerCategoryContentWidgetState
                   List<Product> popularProducts = snapshot.data!;
                   // You can build your UI with the popularProducts list here
                   return SizedBox(
-                    height: 250,
+                    height: 320,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       itemCount: popularProducts.length,

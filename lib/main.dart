@@ -59,8 +59,8 @@ void _configureSystemUI() {
 Future<void> _initializeStripe() async {
   try {
     Stripe.publishableKey = _stripePublishableKey;
-    // To use Apple Pay, a merchant identifier is required.
-    // Replace this with your actual Apple Pay merchant identifier for production.
+    // To use Apple Pay, a merchant identifier is required and must be configured in Xcode.
+    // If you don't have one yet, you can comment out the next line to test other payment methods.
     Stripe.merchantIdentifier = 'merchant.vanh.store.app';
     await Stripe.instance.applySettings();
     debugPrint('Stripe initialized successfully');
@@ -76,7 +76,7 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Vanh Store',
+      title: 'Cửa hàng Vanh',
       theme: _buildAppTheme(),
       navigatorKey: NotificationService.navigatorKey,
       home: const AuthenticationWrapper(),
@@ -169,12 +169,12 @@ class _AuthenticationWrapperState
         if (newToken != null) {
           // Token refresh successful - user has valid session
           ref.read(userProvider.notifier).setUser(userJson);
-          debugPrint('Authentication verified successfully');
+          debugPrint('Xác thực thành công');
           // Initialize notifications for restored sessions (ref.listen misses this transition)
           NotificationService.initialize();
         } else {
           // Token refresh failed - clear all auth data
-          debugPrint('Token refresh failed on startup - clearing session');
+          debugPrint('Làm mới token thất bại khi khởi động - đang xóa phiên làm việc');
           await preferences.remove('auth-token');
           await preferences.remove('refresh-token');
           await preferences.remove('user');
@@ -185,7 +185,7 @@ class _AuthenticationWrapperState
         ref.read(userProvider.notifier).signOut();
       }
     } catch (e) {
-      debugPrint('Error initializing auth: $e');
+      debugPrint('Lỗi khi khởi tạo xác thực: $e');
       // Clear session on any error
       try {
         final preferences = await SharedPreferences.getInstance();
@@ -213,7 +213,7 @@ class _AuthenticationWrapperState
     if (!_isInitialized) {
       return const Scaffold(
         body: Center(
-          child: Text('Failed to initialize app'),
+          child: Text('Khởi tạo ứng dụng thất bại'),
         ),
       );
     }
@@ -265,7 +265,7 @@ class _LoadingScreen extends StatelessWidget {
             const SizedBox(height: 24),
             // App Name
             const Text(
-              'Vanh Store',
+              'Cửa hàng Vanh',
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,

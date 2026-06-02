@@ -128,7 +128,7 @@ class _SubcategoryProductScreenState
             ),
             SizedBox(height: 16),
             Text(
-              'No products found',
+              'Không tìm thấy sản phẩm',
               style: GoogleFonts.roboto(
                 fontSize: 16,
                 color: Colors.grey,
@@ -159,7 +159,7 @@ class _SubcategoryProductScreenState
             child: Row(
               children: [
                 Text(
-                  '${_products.length} Products',
+                  '${_products.length} sản phẩm',
                   style: GoogleFonts.roboto(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -181,7 +181,7 @@ class _SubcategoryProductScreenState
               padding: EdgeInsets.all(12),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                childAspectRatio: 0.68,
+                childAspectRatio: 0.55,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
               ),

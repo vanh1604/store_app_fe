@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vanh_store_app/features/cart/providers/cart_provider.dart';
+import 'package:vanh_store_app/features/cart/screens/cart_screen.dart';
 import 'package:vanh_store_app/features/products/screens/search_screen.dart';
 
-class HeaderWidget extends StatelessWidget {
+class HeaderWidget extends ConsumerWidget {
   const HeaderWidget({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final cartItems = ref.watch(cartProvider);
+    final cartItemCount = cartItems.length;
+
     return Container(
       width: MediaQuery.of(context).size.width,
       decoration: const BoxDecoration(
@@ -50,7 +56,7 @@ class HeaderWidget extends StatelessWidget {
                         const SizedBox(width: 10),
                         const Expanded(
                           child: Text(
-                            'What are you looking for?',
+                            'Bạn đang tìm kiếm gì?',
                             style: TextStyle(
                               fontSize: 14,
                               color: Color(0xFF7F7F7F),
@@ -67,9 +73,44 @@ class HeaderWidget extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 16),
-              _buildIconButton('assets/icons/bell.png', () {}),
-              const SizedBox(width: 12),
-              _buildIconButton('assets/icons/message.png', () {}),
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  _buildIconButton('assets/icons/cart.png', () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const CartScreen(),
+                      ),
+                    );
+                  }),
+                  if (cartItemCount > 0)
+                    Positioned(
+                      right: 0,
+                      top: -4,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Text(
+                          '$cartItemCount',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ],
           ),
         ),

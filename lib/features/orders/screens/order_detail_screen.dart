@@ -18,6 +18,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   final ProductReviewController _productReviewController =
       ProductReviewController();
   double rating = 0.0;
+
+  String _formatCurrency(double amount) {
+    return amount.toStringAsFixed(0).replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]}.',
+        );
+  }
+
   @override
   Widget build(BuildContext context) {
     final order = widget.order;
@@ -80,13 +88,21 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                       width: 58,
                                       height: 67,
                                       fit: BoxFit.cover,
-                                      placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                                      errorWidget: (context, url, error) => Container(
-                                        width: 58,
-                                        height: 67,
-                                        color: Colors.grey[200],
-                                        child: const Icon(Icons.image_not_supported, color: Colors.grey, size: 20),
-                                      ),
+                                      placeholder: (context, url) =>
+                                          const Center(
+                                            child: CircularProgressIndicator(),
+                                          ),
+                                      errorWidget: (context, url, error) =>
+                                          Container(
+                                            width: 58,
+                                            height: 67,
+                                            color: Colors.grey[200],
+                                            child: const Icon(
+                                              Icons.image_not_supported,
+                                              color: Colors.grey,
+                                              size: 20,
+                                            ),
+                                          ),
                                     ),
                                   ),
                                 ],
@@ -134,7 +150,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                           ),
                                           SizedBox(height: 4),
                                           Text(
-                                            "\$${order.productPrice.toStringAsFixed(2)}",
+                                            "${_formatCurrency(order.productPrice)} VND",
                                             style: GoogleFonts.montserrat(
                                               color: Color(0XFF0B0C1E),
                                               fontWeight: FontWeight.w600,
@@ -238,7 +254,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Delivery Address',
+                          'Địa chỉ giao hàng',
                           style: GoogleFonts.montserrat(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -254,20 +270,20 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                           ),
                         ),
                         Text(
-                          'To: ${order.fullName}',
+                          'Người nhận: ${order.fullName}',
                           style: GoogleFonts.roboto(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
-                          "Order ID: ${order.id}",
+                          "Mã đơn hàng: ${order.id}",
                           style: GoogleFonts.lato(fontWeight: FontWeight.bold),
                         ),
                         if (order.orderedAt != null) ...[
                           const SizedBox(height: 4),
                           Text(
-                            'Ordered: ${order.orderedAt!.day.toString().padLeft(2, '0')}/'
+                            'Ngày đặt: ${order.orderedAt!.day.toString().padLeft(2, '0')}/'
                             '${order.orderedAt!.month.toString().padLeft(2, '0')}/'
                             '${order.orderedAt!.year}  '
                             '${order.orderedAt!.hour.toString().padLeft(2, '0')}:'
@@ -314,7 +330,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                       onPressed: () {
                                         final review = _reviewController.text;
                                         _productReviewController.uploadReview(
-                                          productId: order.id,
+                                          productId: order.productId,
                                           buyerId: order.buyerId,
                                           rating: rating,
                                           review: review,
@@ -331,7 +347,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                             );
                           },
                           child: Text(
-                            'Leave a Review',
+                            'Viết đánh giá',
                             style: GoogleFonts.montserrat(
                               fontWeight: FontWeight.bold,
                             ),

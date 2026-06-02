@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:vanh_store_app/core/config/global_variables.dart';
 import 'package:vanh_store_app/features/products/models/product_review.dart';
@@ -39,6 +40,31 @@ class ProductReviewController {
       );
     } catch (e) {
       print("Error: $e");
+    }
+  }
+
+  Future<List<ProductReview>> getReviewsByProductId(String productId) async {
+    try {
+      final http.Response res = await http.get(
+        Uri.parse('$uri/api/product-review?productId=$productId'),
+        headers: <String, String>{
+          "Content-Type": "application/json;charset=UTF-8",
+        },
+      );
+
+      if (res.statusCode == 200) {
+        final Map<String, dynamic> body = jsonDecode(res.body);
+        if (body.containsKey('productReview') && body['productReview'] != null) {
+          final List<dynamic> data = body['productReview'];
+          return data.map((review) => ProductReview.fromMap(review)).toList();
+        }
+        return [];
+      } else {
+        throw Exception("Failed to fetch reviews: ${res.statusCode}");
+      }
+    } catch (e) {
+      print("Error fetching reviews: $e");
+      return [];
     }
   }
 }

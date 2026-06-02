@@ -37,7 +37,7 @@ class _CategoryItemWidgetState extends ConsumerState<CategoryItemWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ReusableTextWidget(title: 'Categories'),
+        ReusableTextWidget(title: 'Danh mục'),
         const SizedBox(height: 10),
         SizedBox(
           height: 85,

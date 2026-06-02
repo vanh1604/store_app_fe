@@ -34,13 +34,16 @@ class _PopularProductsWidgetState extends ConsumerState<PopularProductsWidget> {
   Widget build(BuildContext context) {
     final popularProducts = ref.watch(productProvider);
     return SizedBox(
-      height: 220,
+      height: 320,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: popularProducts.length,
         itemBuilder: (context, index) {
           Product product = popularProducts[index];
-          return ProductItemWidget(product: product);
+          return ProductItemWidget(
+            product: product,
+            heroTag: 'popular-${product.id}',
+          );
         },
       ),
     );

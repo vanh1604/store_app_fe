@@ -49,7 +49,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'login Your Account',
+                    'Đăng ký tài khoản của bạn',
                     style: GoogleFonts.getFont(
                       'Lato',
                       color: Color(0xFF0d120E),
@@ -59,7 +59,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                   Text(
-                    'To Explore The Word Exclusives',
+                    'Để khám phá thế giới độc quyền',
                     style: GoogleFonts.getFont(
                       'Lato',
                       color: Color(0xFF0d120E),
@@ -89,7 +89,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     },
                     validator: (value) {
                       if (value!.isEmpty) {
-                        return 'enter your Email';
+                        return 'Vui lòng nhập Email';
                       } else {
                         return null;
                       }
@@ -102,7 +102,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       focusedBorder: InputBorder.none,
                       enabledBorder: InputBorder.none,
-                      labelText: 'Enter Your Email',
+                      labelText: 'Nhập Email của bạn',
                       labelStyle: GoogleFonts.getFont(
                         'Nunito Sans',
                         fontSize: 14,
@@ -122,7 +122,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   Align(
                     alignment: Alignment.topLeft,
                     child: Text(
-                      'Full Name',
+                      'Họ và tên',
                       style: GoogleFonts.getFont(
                         'Nunito Sans',
                         fontWeight: FontWeight.w600,
@@ -136,7 +136,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     },
                     validator: (value) {
                       if (value!.isEmpty) {
-                        return 'Enter your FullName';
+                        return 'Vui lòng nhập họ và tên';
                       } else {
                         return null;
                       }
@@ -149,7 +149,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       focusedBorder: InputBorder.none,
                       enabledBorder: InputBorder.none,
-                      labelText: 'Enter Your Full name',
+                      labelText: 'Nhập họ và tên của bạn',
                       labelStyle: GoogleFonts.getFont(
                         'Nunito Sans',
                         fontSize: 14,
@@ -169,7 +169,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   Align(
                     alignment: Alignment.topLeft,
                     child: Text(
-                      'Password',
+                      'Mật khẩu',
                       style: GoogleFonts.getFont(
                         'Nunito Sans',
                         fontWeight: FontWeight.w600,
@@ -183,7 +183,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     },
                     validator: (value) {
                       if (value!.isEmpty) {
-                        return 'Enter your Password';
+                        return 'Vui lòng nhập mật khẩu';
                       } else {
                         return null;
                       }
@@ -196,7 +196,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       focusedBorder: InputBorder.none,
                       enabledBorder: InputBorder.none,
-                      labelText: 'Enter Your Password',
+                      labelText: 'Nhập mật khẩu của bạn',
                       labelStyle: GoogleFonts.getFont(
                         'Nunito Sans',
                         fontSize: 14,
@@ -290,7 +290,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     color: Colors.white,
                                   )
                                 : Text(
-                                    'Sign Up',
+                                    'Đăng ký',
                                     style: GoogleFonts.getFont(
                                       'Lato',
                                       fontSize: 18,
@@ -308,7 +308,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Already have an Account ?',
+                        'Đã có tài khoản?',
                         style: GoogleFonts.roboto(
                           fontWeight: FontWeight.w500,
                           letterSpacing: 1,
@@ -327,7 +327,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           );
                         },
                         child: Text(
-                          'Sign In',
+                          'Đăng nhập',
                           style: GoogleFonts.roboto(
                             color: Color(0xFF103DE5),
                             letterSpacing: 1,

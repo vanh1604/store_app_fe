@@ -37,6 +37,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen> {
           SnackBar(
             content: Text('Lỗi khi tải danh sách cửa hàng: $e'),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 1),
           ),
         );
       }

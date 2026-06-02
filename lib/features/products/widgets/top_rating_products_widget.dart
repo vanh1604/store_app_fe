@@ -35,13 +35,16 @@ class _TopRatingProductsWidgetState
   Widget build(BuildContext context) {
     final topRatedProducts = ref.watch(topRatedProductProvider);
     return SizedBox(
-      height: 230,
+      height: 320,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: topRatedProducts.length,
         itemBuilder: (context, index) {
           Product product = topRatedProducts[index];
-          return ProductItemWidget(product: product);
+          return ProductItemWidget(
+            product: product,
+            heroTag: 'toprated-${product.id}',
+          );
         },
       ),
     );

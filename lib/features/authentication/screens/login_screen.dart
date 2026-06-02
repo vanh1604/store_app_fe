@@ -49,7 +49,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'login Your Account',
+                    'Đăng nhập tài khoản của bạn',
                     style: GoogleFonts.getFont(
                       'Lato',
                       color: Color(0xFF0d120E),
@@ -59,7 +59,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ),
                   Text(
-                    'To Explore The Word Exclusives',
+                    'Để khám phá thế giới độc quyền',
                     style: GoogleFonts.getFont(
                       'Lato',
                       color: Color(0xFF0d120E),
@@ -89,7 +89,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     },
                     validator: (value) {
                       if (value!.isEmpty) {
-                        return 'Enter your Email';
+                        return 'Vui lòng nhập Email';
                       } else {
                         return null;
                       }
@@ -102,7 +102,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                       focusedBorder: InputBorder.none,
                       enabledBorder: InputBorder.none,
-                      labelText: 'Enter Your Email',
+                      labelText: 'Nhập Email của bạn',
                       labelStyle: GoogleFonts.getFont(
                         'Nunito Sans',
                         fontSize: 14,
@@ -126,7 +126,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     },
                     validator: (value) {
                       if (value!.isEmpty) {
-                        return 'Enter your Password';
+                        return 'Vui lòng nhập mật khẩu';
                       } else {
                         return null;
                       }
@@ -139,7 +139,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                       focusedBorder: InputBorder.none,
                       enabledBorder: InputBorder.none,
-                      labelText: 'Enter Your Password',
+                      labelText: 'Nhập mật khẩu của bạn',
                       labelStyle: GoogleFonts.getFont(
                         'Nunito Sans',
                         fontSize: 14,
@@ -233,7 +233,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     color: Colors.white,
                                   )
                                 : Text(
-                                    'Sign in',
+                                    'Đăng nhập',
                                     style: GoogleFonts.getFont(
                                       'Lato',
                                       fontSize: 18,
@@ -251,7 +251,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Need an Account ?',
+                        'Chưa có tài khoản?',
                         style: GoogleFonts.roboto(
                           fontWeight: FontWeight.w500,
                           letterSpacing: 1,
@@ -270,7 +270,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           );
                         },
                         child: Text(
-                          'Sign Up',
+                          'Đăng ký',
                           style: GoogleFonts.roboto(
                             color: Color(0xFF103DE5),
                             letterSpacing: 1,

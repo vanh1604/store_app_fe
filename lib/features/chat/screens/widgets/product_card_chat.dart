@@ -13,6 +13,13 @@ class ProductCardChat extends StatelessWidget {
   Widget build(BuildContext context) {
     final thumbnail = product.images.isNotEmpty ? product.images.first : null;
 
+    String formatCurrency(double amount) {
+      return amount.toStringAsFixed(0).replaceAllMapped(
+            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+            (Match m) => '${m[1]}.',
+          );
+    }
+
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
@@ -66,7 +73,7 @@ class ProductCardChat extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '\$${product.price.toStringAsFixed(2)}',
+                    '${formatCurrency(product.price)} VND',
                     style: GoogleFonts.poppins(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,

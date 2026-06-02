@@ -8,11 +8,13 @@ import 'package:vanh_store_app/features/products/models/product.dart';
 import 'package:vanh_store_app/features/cart/providers/cart_provider.dart';
 import 'package:vanh_store_app/features/favorites/providers/favorite_provider.dart';
 import 'package:vanh_store_app/features/products/providers/related_product_provider.dart';
+import 'package:vanh_store_app/features/products/widgets/product_reviews_widget.dart';
 import 'package:vanh_store_app/core/services/http_response_handler.dart';
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
-  const ProductDetailScreen({super.key, required this.productId});
+  const ProductDetailScreen({super.key, required this.productId, this.heroTag});
   final String? productId;
+  final String? heroTag;
   @override
   ProductDetailScreenState createState() => ProductDetailScreenState();
 }
@@ -28,6 +30,13 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
   String? _selectedSize;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+
+  String _formatCurrency(double amount) {
+    return amount.toStringAsFixed(0).replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]}.',
+        );
+  }
 
   @override
   void initState() {
@@ -197,7 +206,8 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
                       ? Icon(Icons.favorite, color: Colors.red)
                       : Icon(Icons.favorite_border, color: Colors.black87),
                   onPressed: () {
-                    favoriteProviderData.addProductToFavorite(
+                    final isFavorite = favoriteProviderData.getFavorite.containsKey(_productData.id);
+                    favoriteProviderData.toggleFavorite(
                       productName: _productData.name,
                       quantity: 1,
                       price: _productData.price,
@@ -211,7 +221,9 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
                     );
                     showSnackBar(
                       context,
-                      "added ${_productData.name} to favorite",
+                      isFavorite 
+                        ? "Đã xóa ${_productData.name} khỏi danh sách yêu thích"
+                        : "Đã thêm ${_productData.name} vào danh sách yêu thích",
                     );
                   },
                 ),
@@ -235,6 +247,7 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
                   _buildQuantitySelector(),
                   _buildVendorInfo(),
                   _buildDescriptionSection(),
+                  ProductReviewsWidget(productId: _productData.id),
                   _buildRelatedProductsSection(),
                   SizedBox(height: 100),
                 ],
@@ -260,34 +273,41 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
               });
             },
             itemBuilder: (context, index) {
-              return Hero(
-                tag: 'product_${widget.productId}',
-                child: Container(
-                  margin: EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 20,
-                        offset: Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: CachedNetworkImage(
-                      imageUrl: _productData.images[index],
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                      errorWidget: (context, url, error) => Container(
-                        color: Colors.grey[200],
-                        child: const Icon(Icons.image_not_supported, color: Colors.grey),
-                      ),
+              final imageWidget = Container(
+                margin: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: CachedNetworkImage(
+                    imageUrl: _productData.images[index],
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) =>
+                        const Center(child: CircularProgressIndicator()),
+                    errorWidget: (context, url, error) => Container(
+                      color: Colors.grey[200],
+                      child: const Icon(Icons.image_not_supported,
+                          color: Colors.grey),
                     ),
                   ),
                 ),
               );
+
+              if (index == 0) {
+                return Hero(
+                  tag: widget.heroTag ?? 'product-${widget.productId}',
+                  child: imageWidget,
+                );
+              }
+              return imageWidget;
             },
           ),
           // Image indicators
@@ -367,9 +387,9 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
                       (v) => v.id == _selectedVariantId,
                       orElse: () => _productData.variants.first,
                     );
-                    return '\$${variant.price.toStringAsFixed(2)}';
+                    return _formatCurrency(variant.price);
                   }
-                  return '\$${_productData.price.toStringAsFixed(2)}';
+                  return _formatCurrency(_productData.price);
                 }(),
                 style: GoogleFonts.quicksand(
                   fontSize: 32,
@@ -382,7 +402,7 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
               Padding(
                 padding: EdgeInsets.only(bottom: 4),
                 child: Text(
-                  'USD',
+                  'VND',
                   style: GoogleFonts.quicksand(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -726,7 +746,7 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
           child: Row(
             children: [
               Text(
-                'You May Also Like',
+                'Có thể bạn cũng thích',
                 style: GoogleFonts.quicksand(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -906,7 +926,7 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
                     SizedBox(height: 4),
                     // Price
                     Text(
-                      '\$${product.price.toStringAsFixed(2)}',
+                      '${_formatCurrency(product.price)} VND',
                       style: GoogleFonts.quicksand(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -1070,7 +1090,7 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
                           }
                           showSnackBar(
                             context,
-                            'Added ${_selectedQuantity}x ${_productData.name}${_selectedSize != null ? ' (Size: $_selectedSize)' : ''} to cart',
+                            'Đã thêm ${_selectedQuantity}x ${_productData.name}${_selectedSize != null ? ' (Kích thước: $_selectedSize)' : ''} vào giỏ hàng',
                           );
                         },
                   borderRadius: BorderRadius.circular(16),
@@ -1086,7 +1106,7 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
                         ),
                         SizedBox(width: 12),
                         Text(
-                          isOutOfStock ? 'Out of Stock' : (isInCart ? 'Already in Cart' : 'Add to Cart'),
+                          isOutOfStock ? 'Hết hàng' : (isInCart ? 'Đã trong giỏ' : 'Thêm vào giỏ'),
                           style: GoogleFonts.quicksand(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -1119,3 +1139,4 @@ class _StrikethroughPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+

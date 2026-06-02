@@ -5,90 +5,60 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:vanh_store_app/features/favorites/providers/favorite_provider.dart';
 import 'package:vanh_store_app/features/home/screens/main_screen.dart';
 
-class FavoriteScreen extends ConsumerStatefulWidget {
+String _formatCurrency(double amount) {
+  return amount.toStringAsFixed(0).replaceAllMapped(
+        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+        (Match m) => '${m[1]}.',
+      );
+}
+
+class FavoriteScreen extends ConsumerWidget {
   const FavoriteScreen({super.key});
 
   @override
-  ConsumerState<FavoriteScreen> createState() => _FavoriteScreenState();
-}
-
-class _FavoriteScreenState extends ConsumerState<FavoriteScreen> {
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final favoriteData = ref.watch(favoriteProvider);
-    final favoriteNotifier = ref.read(favoriteProvider.notifier);
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: _buildAppBar(context, favoriteData.length),
+      backgroundColor: Colors.grey[100],
+      appBar: _buildAppBar(favoriteData.length),
       body: favoriteData.isEmpty
-          ? _buildEmptyState(context)
-          : _buildFavoriteList(favoriteData, favoriteNotifier),
+          ? _buildEmptyWishlist(context)
+          : _buildFavoriteList(favoriteData, ref),
     );
   }
 
   // ==================== AppBar ====================
-  PreferredSizeWidget _buildAppBar(BuildContext context, int itemCount) {
+  PreferredSizeWidget _buildAppBar(int count) {
     return AppBar(
       elevation: 0,
       backgroundColor: Colors.deepPurple,
       toolbarHeight: 80,
       title: Text(
-        'My Wish List',
+        'Yêu thích',
         style: GoogleFonts.lato(
           fontSize: 26,
           fontWeight: FontWeight.bold,
           color: Colors.white,
         ),
       ),
-      centerTitle: false,
       actions: [
-        _buildNotificationBadge(itemCount),
-        const SizedBox(width: 16),
-      ],
-    );
-  }
-
-  Widget _buildNotificationBadge(int count) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        IconButton(
-          icon: const Icon(
-            Icons.favorite,
-            color: Colors.white,
-            size: 28,
-          ),
-          onPressed: () {},
-        ),
         if (count > 0)
-          Positioned(
-            right: 8,
-            top: 8,
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: Colors.amber[700],
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(51), // 0.2 * 255 = 51
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              constraints: const BoxConstraints(
-                minWidth: 20,
-                minHeight: 20,
-              ),
-              child: Center(
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(20),
+                ),
                 child: Text(
-                  count > 99 ? '99+' : count.toString(),
-                  style: GoogleFonts.roboto(
+                  '$count sản phẩm',
+                  style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 10,
                     fontWeight: FontWeight.bold,
+                    fontSize: 12,
                   ),
                 ),
               ),
@@ -99,103 +69,126 @@ class _FavoriteScreenState extends ConsumerState<FavoriteScreen> {
   }
 
   // ==================== Empty State ====================
-  Widget _buildEmptyState(BuildContext context) {
+  Widget _buildEmptyWishlist(BuildContext context) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Empty icon
-            Container(
-              padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                color: Colors.purple[50],
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.favorite_border,
-                size: 80,
-                color: Colors.deepPurple[300],
-              ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Icon Container
+          Container(
+            width: 160,
+            height: 160,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
             ),
-            const SizedBox(height: 24),
+            child: const Icon(
+              Icons.favorite_border_rounded,
+              size: 80,
+              color: Colors.deepPurple,
+            ),
+          ),
+          const SizedBox(height: 24),
 
-            // Title
-            Text(
-              'Your Wishlist is Empty',
+          // Title
+          Text(
+            'Danh sách yêu thích trống',
+            style: GoogleFonts.lato(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[800],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Description
+          Text(
+            'Lưu những sản phẩm bạn yêu thích\ntại đây để mua sau',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.roboto(
+              fontSize: 16,
+              color: Colors.grey[600],
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 32),
+
+          // Shop Now Button
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MainScreen(),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.deepPurple,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 48,
+                vertical: 16,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 2,
+            ),
+            child: Text(
+              'Bắt đầu mua sắm',
               style: GoogleFonts.lato(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[800],
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Description
-            Text(
-              'Save your favorite items here\nand shop them later',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.roboto(
                 fontSize: 16,
-                color: Colors.grey[600],
-                height: 1.5,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 32),
-
-            // Shop Now Button
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => MainScreen(),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepPurple,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 48,
-                  vertical: 16,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 2,
-              ),
-              child: Text(
-                'Start Shopping',
-                style: GoogleFonts.lato(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   // ==================== Favorite List ====================
-  Widget _buildFavoriteList(
-    Map<String, dynamic> favoriteData,
-    dynamic favoriteNotifier,
-  ) {
-    final favoriteItems = favoriteData.values.toList();
-
+  Widget _buildFavoriteList(Map<String, dynamic> favoriteData, WidgetRef ref) {
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: favoriteItems.length,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      itemCount: favoriteData.length,
       itemBuilder: (context, index) {
-        final item = favoriteItems[index];
+        final item = favoriteData.values.toList()[index];
         return _FavoriteItemCard(
           item: item,
           onRemove: () {
-            favoriteNotifier.removeFavoriteItem(item.productId);
+            ref.read(favoriteProvider.notifier).removeItem(item.productId);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Đã xóa ${item.productName} khỏi danh sách yêu thích'),
+                duration: const Duration(seconds: 1),
+                action: SnackBarAction(
+                  label: 'Hoàn tác',
+                  onPressed: () {
+                    ref.read(favoriteProvider.notifier).addProductToFavorite(
+                          productName: item.productName,
+                          quantity: item.quantity,
+                          price: item.price,
+                          image: item.image,
+                          category: item.category,
+                          vendorId: item.vendorId,
+                          productId: item.productId,
+                          productDescription: item.productDescription,
+                          productQuantity: item.productQuantity,
+                          fullName: item.fullName,
+                        );
+                  },
+                ),
+              ),
+            );
           },
         );
       },
@@ -227,7 +220,7 @@ class _FavoriteItemCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withAlpha(13), // 0.05 * 255 = 13
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),
@@ -336,7 +329,7 @@ class _FavoriteItemCard extends StatelessWidget {
       children: [
         // Price
         Text(
-          '\$${item.price.toStringAsFixed(2)}',
+          '${_formatCurrency(item.price)} VND',
           style: GoogleFonts.lato(
             fontSize: 18,
             fontWeight: FontWeight.bold,

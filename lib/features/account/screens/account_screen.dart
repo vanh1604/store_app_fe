@@ -20,7 +20,7 @@ class AccountScreen extends ConsumerWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         title: const Text(
-          'Account',
+          'Tài khoản',
           style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -59,7 +59,7 @@ class AccountScreen extends ConsumerWidget {
                       child: Text(
                         user?.fullName.isNotEmpty == true
                             ? user!.fullName[0].toUpperCase()
-                            : 'U',
+                            : 'N',
                         style: const TextStyle(
                           fontSize: 36,
                           fontWeight: FontWeight.bold,
@@ -71,7 +71,7 @@ class AccountScreen extends ConsumerWidget {
                   const SizedBox(height: 16),
                   // Full Name
                   Text(
-                    user?.fullName ?? 'User',
+                    user?.fullName ?? 'Người dùng',
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -130,8 +130,8 @@ class AccountScreen extends ConsumerWidget {
                   _buildMenuItem(
                     context,
                     icon: Icons.shopping_bag_outlined,
-                    title: 'My Orders',
-                    subtitle: 'View your order history',
+                    title: 'Đơn hàng của tôi',
+                    subtitle: 'Xem lịch sử đơn hàng',
                     iconColor: Colors.orange,
                     onTap: () {
                       Navigator.push(
@@ -144,8 +144,8 @@ class AccountScreen extends ConsumerWidget {
                   _buildMenuItem(
                     context,
                     icon: Icons.person_outline,
-                    title: 'Edit Profile',
-                    subtitle: 'Update your personal information',
+                    title: 'Chỉnh sửa hồ sơ',
+                    subtitle: 'Cập nhật thông tin cá nhân',
                     iconColor: Colors.blue,
                     onTap: () {
                       Navigator.push(
@@ -160,8 +160,8 @@ class AccountScreen extends ConsumerWidget {
                   _buildMenuItem(
                     context,
                     icon: Icons.location_on_outlined,
-                    title: 'Shipping Address',
-                    subtitle: 'Manage your delivery addresses',
+                    title: 'Địa chỉ giao hàng',
+                    subtitle: 'Quản lý địa chỉ giao hàng',
                     iconColor: Colors.green,
                     onTap: () {
                       Navigator.push(
@@ -183,13 +183,16 @@ class AccountScreen extends ConsumerWidget {
                   _buildMenuItem(
                     context,
                     icon: Icons.settings_outlined,
-                    title: 'Settings',
-                    subtitle: 'App preferences and notifications',
+                    title: 'Cài đặt',
+                    subtitle: 'Tùy chọn ứng dụng và thông báo',
                     iconColor: Colors.grey.shade700,
                     onTap: () {
                       // TODO: Navigate to Settings screen
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Settings - Coming soon')),
+                        const SnackBar(
+                          content: Text('Cài đặt - Sắp ra mắt'),
+                          duration: const Duration(seconds: 1),
+                        ),
                       );
                     },
                   ),
@@ -197,14 +200,15 @@ class AccountScreen extends ConsumerWidget {
                   _buildMenuItem(
                     context,
                     icon: Icons.help_outline,
-                    title: 'Help & Support',
-                    subtitle: 'Get help and contact support',
+                    title: 'Trợ giúp & Hỗ trợ',
+                    subtitle: 'Nhận trợ giúp và liên hệ hỗ trợ',
                     iconColor: Colors.teal,
                     onTap: () {
                       // TODO: Navigate to Help screen
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Help & Support - Coming soon'),
+                          content: Text('Trợ giúp & Hỗ trợ - Sắp ra mắt'),
+                          duration: const Duration(seconds: 1),
                         ),
                       );
                     },
@@ -213,13 +217,16 @@ class AccountScreen extends ConsumerWidget {
                   _buildMenuItem(
                     context,
                     icon: Icons.info_outline,
-                    title: 'About',
-                    subtitle: 'App version and information',
+                    title: 'Giới thiệu',
+                    subtitle: 'Phiên bản ứng dụng và thông tin',
                     iconColor: Colors.indigo,
                     onTap: () {
                       // TODO: Navigate to About screen
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('About - Coming soon')),
+                        const SnackBar(
+                          content: Text('Giới thiệu - Sắp ra mắt'),
+                          duration: const Duration(seconds: 1),
+                        ),
                       );
                     },
                   ),
@@ -239,21 +246,21 @@ class AccountScreen extends ConsumerWidget {
                     final shouldSignOut = await showDialog<bool>(
                       context: context,
                       builder: (context) => AlertDialog(
-                        title: const Text('Sign Out'),
+                        title: const Text('Đăng xuất'),
                         content: const Text(
-                          'Are you sure you want to sign out?',
+                          'Bạn có chắc chắn muốn đăng xuất không?',
                         ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(context, false),
-                            child: const Text('Cancel'),
+                            child: const Text('Hủy'),
                           ),
                           TextButton(
                             onPressed: () => Navigator.pop(context, true),
                             style: TextButton.styleFrom(
                               foregroundColor: Colors.red,
                             ),
-                            child: const Text('Sign Out'),
+                            child: const Text('Đăng xuất'),
                           ),
                         ],
                       ),
@@ -278,7 +285,7 @@ class AccountScreen extends ConsumerWidget {
                       Icon(Icons.logout),
                       SizedBox(width: 8),
                       Text(
-                        'Sign Out',
+                        'Đăng xuất',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -310,17 +317,17 @@ class AccountScreen extends ConsumerWidget {
                               size: 28,
                             ),
                             const SizedBox(width: 8),
-                            const Text('Delete Account'),
+                            const Text('Xóa tài khoản'),
                           ],
                         ),
                         content: const Text(
-                          'Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.',
+                          'Bạn có chắc chắn muốn xóa tài khoản không? Hành động này không thể hoàn tác và tất cả dữ liệu của bạn sẽ bị xóa vĩnh viễn.',
                           style: TextStyle(fontSize: 14),
                         ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(context, false),
-                            child: const Text('Cancel'),
+                            child: const Text('Hủy'),
                           ),
                           TextButton(
                             onPressed: () => Navigator.pop(context, true),
@@ -329,7 +336,7 @@ class AccountScreen extends ConsumerWidget {
                               backgroundColor: Colors.red.shade50,
                             ),
                             child: const Text(
-                              'Delete',
+                              'Xóa',
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ),
@@ -360,7 +367,7 @@ class AccountScreen extends ConsumerWidget {
                       Icon(Icons.delete_forever),
                       SizedBox(width: 8),
                       Text(
-                        'Delete Account',
+                        'Xóa tài khoản',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,

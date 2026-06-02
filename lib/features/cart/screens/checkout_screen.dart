@@ -21,6 +21,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   String selectedPaymentMethod = 'stripe';
   bool _isLoading = false;
   final OrderController orderController = OrderController();
+
+  String _formatCurrency(double amount) {
+    return amount.toStringAsFixed(0).replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]}.',
+        );
+  }
+
   Future<void> handleStripePayment(BuildContext context) async {
     List<String> createdOrderIds = [];
 
@@ -29,30 +37,17 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       final cartProviderNotifier = ref.read(cartProvider.notifier);
       final user = ref.read(userProvider);
 
-      // Show loading indicator
       if (!mounted) return;
       setState(() {
         _isLoading = true;
       });
 
-      // Calculate total amount from cart
       double totalAmount = 0;
       cartData.forEach((key, item) {
         totalAmount += item.price * item.quantity;
       });
-      // Convert to cents for Stripe (amount should be in smallest currency unit)
-      int amountInCents = (totalAmount * 100).toInt();
+      int amount = totalAmount.toInt();
 
-      // Stripe minimum amount is 50 cents
-      if (amountInCents < 50) {
-        amountInCents = 50;
-      }
-
-      print("DEBUG: Cart Items: ${cartProviderNotifier.getCartItems.length}");
-      print("DEBUG: Total Amount: $totalAmount");
-      print("DEBUG: Amount in Cents: $amountInCents");
-
-      // Step 1: Create orders first with processing=false (pending payment)
       for (var entry in cartProviderNotifier.getCartItems.entries) {
         var item = entry.value;
         final orderId = await orderController.uploadOrders(
@@ -80,71 +75,51 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
         if (orderId != null) {
           createdOrderIds.add(orderId);
-          print("Order created with ID: $orderId");
         }
       }
 
       if (createdOrderIds.isEmpty) {
-        throw Exception("Failed to create orders");
+        throw Exception("Không thể tạo đơn hàng");
       }
 
-      // Step 2: Create payment intent with first orderId and total amount
-      print("Creating payment intent for amount: $amountInCents");
       final paymentIntentData = await orderController.createPaymentIntent(
-        amount: amountInCents,
-        currency: 'usd',
+        amount: amount,
+        currency: 'vnd',
         orderId: createdOrderIds.first,
       );
 
       if (paymentIntentData['clientSecret'] == null) {
-        throw Exception("Failed to get clientSecret from server");
+        throw Exception("Không thể nhận mã bảo mật từ máy chủ");
       }
 
-      // Step 3: Initialize payment sheet
-      try {
-        print("Initializing payment sheet...");
-        await Stripe.instance.initPaymentSheet(
-          paymentSheetParameters: SetupPaymentSheetParameters(
-            paymentIntentClientSecret: paymentIntentData['clientSecret'],
-            merchantDisplayName: 'Vanh Store',
-            style: ThemeMode.light,
-            applePay: const PaymentSheetApplePay(merchantCountryCode: 'VN'),
-            googlePay: const PaymentSheetGooglePay(
-              merchantCountryCode: 'VN',
-              testEnv: true,
-            ),
+      await Stripe.instance.initPaymentSheet(
+        paymentSheetParameters: SetupPaymentSheetParameters(
+          paymentIntentClientSecret: paymentIntentData['clientSecret'],
+          merchantDisplayName: 'Vanh Store',
+          style: ThemeMode.light,
+          returnURL: 'vanhstore://redirect',
+          applePay: const PaymentSheetApplePay(merchantCountryCode: 'VN'),
+          googlePay: const PaymentSheetGooglePay(
+            merchantCountryCode: 'VN',
+            testEnv: true,
           ),
-        );
-      } catch (e) {
-        print("Error initializing payment sheet: $e");
-        throw Exception("Stripe initialization failed: $e");
-      }
+        ),
+      );
 
-      // Hide loading BEFORE presenting payment sheet
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
       }
 
-      // Step 4: Present payment sheet
-      try {
-        print("Presenting payment sheet...");
-        await Stripe.instance.presentPaymentSheet();
-        print("Payment sheet presented and completed.");
-      } catch (e) {
-        print("Error presenting payment sheet: $e");
-        rethrow; // Re-throw to be caught by StripeException or catch-all
-      }
+      await Stripe.instance.presentPaymentSheet();
 
-      // Show loading again for order updates
       if (mounted) {
         setState(() {
           _isLoading = true;
         });
       }
 
-      // Step 5: Payment successful! Update all orders to processing=true
       for (String orderId in createdOrderIds) {
         await orderController.updateOrderProcessing(
           orderId: orderId,
@@ -153,10 +128,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         );
       }
 
-      // Clear cart after successful payment
       cartProviderNotifier.clearCart();
 
-      // Close loading
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -164,16 +137,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       }
 
       if (!context.mounted) return;
-      showSnackBar(context, 'Payment successful! Order placed successfully');
+      showSnackBar(context, 'Thanh toán thành công! Đơn hàng đã được đặt');
 
-      // Navigate to main screen
       if (!context.mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => MainScreen()),
       );
     } on StripeException catch (e) {
-      // Payment failed or cancelled - delete created orders
       if (mounted) {
         setState(() {
           _isLoading = true;
@@ -183,9 +154,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       for (String orderId in createdOrderIds) {
         try {
           await orderController.deleteOrder(orderId: orderId, context: context);
-        } catch (deleteError) {
-          print("Failed to delete order $orderId: $deleteError");
-        }
+        } catch (_) {}
       }
 
       if (mounted) {
@@ -194,28 +163,22 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         });
       }
 
-      print("Stripe error: ${e.error.localizedMessage}");
       if (!context.mounted) return;
       showSnackBar(
         context,
-        'Payment cancelled or failed: ${e.error.localizedMessage ?? "Unknown Stripe error"}',
+        'Thanh toán bị hủy hoặc thất bại: ${e.error.localizedMessage ?? "Lỗi thẻ"}',
       );
     } catch (e) {
-      // Error occurred - delete created orders
       if (mounted) {
         setState(() {
           _isLoading = true;
         });
       }
 
-      print("Error occurred. Deleting created orders...");
       for (String orderId in createdOrderIds) {
         try {
           await orderController.deleteOrder(orderId: orderId, context: context);
-          print("Deleted order: $orderId");
-        } catch (deleteError) {
-          print("Failed to delete order $orderId: $deleteError");
-        }
+        } catch (_) {}
       }
 
       if (mounted) {
@@ -224,9 +187,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         });
       }
 
-      print("Error: $e");
       if (!context.mounted) return;
-      showSnackBar(context, 'An error occurred: ${e.toString()}');
+      showSnackBar(context, 'Đã xảy ra lỗi: ${e.toString()}');
     }
   }
 
@@ -237,10 +199,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final user = ref.watch(userProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Checkout')),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 15),
-        child: Center(
+      appBar: AppBar(title: const Text('Thanh toán')),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 15),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -253,297 +215,179 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     ),
                   );
                 },
-                child: SizedBox(
-                  width: 335,
-                  height: 74,
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Positioned(
-                        left: 0,
-                        top: 0,
-                        child: Container(
-                          width: 335,
-                          height: 74,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: Border.all(color: const Color(0xFFEFF0F2)),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 70,
-                        top: 17,
-                        child: SizedBox(
-                          width: 215,
-                          height: 41,
-                          child: Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              Positioned(
-                                top: -1,
-                                left: -1,
-                                child: SizedBox(
-                                  width: 219,
-                                  child: Column(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: SizedBox(
-                                          width: 114,
-                                          child: user!.province.isNotEmpty
-                                              ? Text(
-                                                  'Address',
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.bold,
-                                                    height: 1.1,
-                                                  ),
-                                                )
-                                              : Text(
-                                                  'Address added',
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.bold,
-                                                    height: 1.1,
-                                                  ),
-                                                ),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: user.address.isNotEmpty
-                                            ? Text(
-                                                '${user.address}, ${user.ward}',
-                                                style: GoogleFonts.lato(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.bold,
-                                                  letterSpacing: 1.3,
-                                                ),
-                                              )
-                                            : Text(
-                                                'No address added',
-                                                style: GoogleFonts.lato(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.bold,
-                                                  letterSpacing: 1.3,
-                                                ),
-                                              ),
-                                      ),
-                                      Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: user.district.isNotEmpty
-                                            ? Text(
-                                                '${user.district}, ${user.province}',
-                                                style: GoogleFonts.lato(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.bold,
-                                                  letterSpacing: 1.3,
-                                                ),
-                                              )
-                                            : Text(
-                                                'No city added',
-                                                style: GoogleFonts.lato(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.bold,
-                                                  letterSpacing: 1.3,
-                                                ),
-                                              ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 16,
-                        top: 16,
-                        child: SizedBox.square(
-                          dimension: 42,
-                          child: Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              Positioned(
-                                left: 0,
-                                top: 0,
-                                child: Container(
-                                  width: 43,
-                                  height: 43,
-                                  clipBehavior: Clip.hardEdge,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFFBF7F5),
-                                    borderRadius: BorderRadius.circular(100),
-                                  ),
-                                  child: Stack(
-                                    clipBehavior: Clip.hardEdge,
-                                    children: [
-                                      Positioned(
-                                        left: 11,
-                                        top: 11,
-                                        child: CachedNetworkImage(
-                                          imageUrl:
-                                              'https://storage.googleapis.com/codeless-dev.appspot.com/uploads%2Fimages%2Fnn2Ldqjoc2Xp89Y7Wfzf%2F2ee3a5ce3b02828d0e2806584a6baa88.png',
-                                          height: 26,
-                                          width: 26,
-                                          placeholder: (context, url) =>
-                                              const CircularProgressIndicator(),
-                                          errorWidget: (context, url, error) =>
-                                              const Icon(Icons.error),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 305,
-                        top: 25,
-                        child: CachedNetworkImage(
-                          imageUrl:
-                              'https://firebasestorage.googleapis.com/v0/b/codeless-app.appspot.com/o/projects%2Fnn2Ldqjoc2Xp89Y7Wfzf%2F6ce18a0efc6e889de2f2878027c689c9caa53feeedit%201.png?alt=media&token=a3a8a999-80d5-4a2e-a9b7-a43a7fa8789a',
-                          width: 20,
-                          height: 20,
-                          placeholder: (context, url) =>
-                              const CircularProgressIndicator(),
-                          errorWidget: (context, url, error) =>
-                              const Icon(Icons.error),
-                        ),
-                      ),
-                    ],
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: const Color(0xFFEFF0F2)),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                ),
-              ),
-              SizedBox(height: 10),
-              Text(
-                'Your Items',
-                style: GoogleFonts.quicksand(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Flexible(
-                child: ListView.builder(
-                  itemCount: cartData.length,
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) {
-                    final cartItem = cartData.values.toList()[index];
-                    return InkWell(
-                      child: Container(
-                        width: 336,
-                        height: 91,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 43,
+                        height: 43,
                         decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(color: Color(0xFFEFF0F2)),
-                          borderRadius: BorderRadius.circular(12),
+                          color: const Color(0xFFFBF7F5),
+                          borderRadius: BorderRadius.circular(100),
                         ),
-                        child: Stack(
-                          clipBehavior: Clip.none,
+                        child: Center(
+                          child: CachedNetworkImage(
+                            imageUrl:
+                                'https://storage.googleapis.com/codeless-dev.appspot.com/uploads%2Fimages%2Fnn2Ldqjoc2Xp89Y7Wfzf%2F2ee3a5ce3b02828d0e2806584a6baa88.png',
+                            height: 26,
+                            width: 26,
+                            placeholder: (context, url) =>
+                                const CircularProgressIndicator(),
+                            errorWidget: (context, url, error) =>
+                                const Icon(Icons.error),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Positioned(
-                              left: 6,
-                              top: 6,
-                              child: SizedBox(
-                                width: 311,
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Container(
-                                      width: 78,
-                                      height: 78,
-                                      clipBehavior: Clip.hardEdge,
-                                      decoration: BoxDecoration(
-                                        color: Color(0xFFBCC5FF),
-                                      ),
-                                      child: CachedNetworkImage(
-                                        imageUrl: cartItem.image[0],
-                                        fit: BoxFit.cover,
-                                        placeholder: (context, url) =>
-                                            const Center(
-                                              child:
-                                                  CircularProgressIndicator(),
-                                            ),
-                                        errorWidget: (context, url, error) =>
-                                            const Icon(
-                                              Icons.image_not_supported,
-                                              color: Colors.grey,
-                                            ),
-                                      ),
-                                    ),
-                                    SizedBox(width: 11),
-                                    Expanded(
-                                      child: Container(
-                                        height: 78,
-                                        alignment: Alignment(0, -0.51),
-                                        child: SizedBox(
-                                          width: double.infinity,
-                                          child: Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              SizedBox(
-                                                width: double.infinity,
-                                                child: Text(
-                                                  cartItem.productName,
-                                                  style: GoogleFonts.quicksand(
-                                                    letterSpacing: 1.2,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ),
-                                              SizedBox(height: 4),
-                                              Align(
-                                                alignment: Alignment.centerLeft,
-                                                child: Text(
-                                                  cartItem.category,
-                                                  style: GoogleFonts.lato(
-                                                    color: Colors.blueGrey,
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(width: 16),
-                                    Text(
-                                      "\$${cartItem.price.toStringAsFixed(2)}",
-                                      style: GoogleFonts.robotoSerif(
-                                        fontSize: 14,
-                                        color: Colors.pink,
-                                        letterSpacing: 1.3,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                            Text(
+                              user!.province.isNotEmpty
+                                  ? 'Địa chỉ'
+                                  : 'Đã thêm địa chỉ',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                height: 1.1,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              user.address.isNotEmpty
+                                  ? '${user.address}, ${user.ward}'
+                                  : 'Chưa có địa chỉ',
+                              style: GoogleFonts.lato(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.3,
+                              ),
+                            ),
+                            Text(
+                              user.district.isNotEmpty
+                                  ? '${user.district}, ${user.province}'
+                                  : 'Chưa có tỉnh/thành phố',
+                              style: GoogleFonts.lato(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.3,
                               ),
                             ),
                           ],
                         ),
                       ),
-                    );
-                  },
+                      const SizedBox(width: 8),
+                      CachedNetworkImage(
+                        imageUrl:
+                            'https://firebasestorage.googleapis.com/v0/b/codeless-app.appspot.com/o/projects%2Fnn2Ldqjoc2Xp89Y7Wfzf%2F6ce18a0efc6e889de2f2878027c689c9caa53feeedit%201.png?alt=media&token=a3a8a999-80d5-4a2e-a9b7-a43a7fa8789a',
+                        width: 20,
+                        height: 20,
+                        placeholder: (context, url) =>
+                            const CircularProgressIndicator(),
+                        errorWidget: (context, url, error) =>
+                            const Icon(Icons.error),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Text(
-                'Choose Payment Method',
+                'Sản phẩm của bạn',
+                style: GoogleFonts.quicksand(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              ListView.builder(
+                itemCount: cartData.length,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemBuilder: (context, index) {
+                  final cartItem = cartData.values.toList()[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(color: const Color(0xFFEFF0F2)),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 78,
+                            height: 78,
+                            clipBehavior: Clip.hardEdge,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFBCC5FF),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: CachedNetworkImage(
+                              imageUrl: cartItem.image[0],
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                              errorWidget: (context, url, error) => const Icon(
+                                Icons.image_not_supported,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  cartItem.productName,
+                                  style: GoogleFonts.quicksand(
+                                    letterSpacing: 1.2,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  cartItem.category,
+                                  style: GoogleFonts.lato(
+                                    color: Colors.blueGrey,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  "${_formatCurrency(cartItem.price)} VND",
+                                  style: GoogleFonts.robotoSerif(
+                                    fontSize: 14,
+                                    color: Colors.pink,
+                                    letterSpacing: 1.3,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Chọn phương thức thanh toán',
                 style: GoogleFonts.montserrat(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -551,7 +395,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               ),
               RadioListTile<String>(
                 title: Text(
-                  'Stripe',
+                  'Thẻ (Stripe)',
                   style: GoogleFonts.montserrat(
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
@@ -567,7 +411,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               ),
               RadioListTile(
                 title: Text(
-                  'Cash on Delivery',
+                  'Thanh toán khi nhận hàng',
                   style: GoogleFonts.montserrat(
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
@@ -594,13 +438,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     context,
                     MaterialPageRoute(
                       builder: (context) {
-                        return ShippingAddressScreen();
+                        return const ShippingAddressScreen();
                       },
                     ),
                   );
                 },
                 child: Text(
-                  'Please Enter Shipping Address',
+                  'Vui lòng nhập địa chỉ giao hàng',
                   style: GoogleFonts.montserrat(
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1.7,
@@ -644,7 +488,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                             },
                           ).then((value) {
                             cartProviderNotifier.clearCart();
-                            showSnackBar(context, 'Order placed successfully');
+                            showSnackBar(context, 'Đặt hàng thành công');
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -660,10 +504,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   width: 338,
                   height: 58,
                   decoration: BoxDecoration(
-                    color: _isLoading ? Colors.grey : Color(0xFF3854EE),
+                    color: _isLoading ? Colors.grey : const Color(0xFF3854EE),
                     borderRadius: BorderRadius.circular(15),
                   ),
-
                   child: Center(
                     child: _isLoading
                         ? const SizedBox(
@@ -676,8 +519,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                           )
                         : Text(
                             selectedPaymentMethod == "stripe"
-                                ? 'Pay Now'
-                                : 'Place Order',
+                                ? 'Thanh toán ngay'
+                                : 'Đặt hàng',
                             style: GoogleFonts.montserrat(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,

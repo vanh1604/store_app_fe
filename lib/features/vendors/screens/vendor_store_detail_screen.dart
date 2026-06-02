@@ -313,7 +313,7 @@ class _VendorStoreDetailScreenState
       sliver: SliverGrid(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          childAspectRatio: 0.68,
+          childAspectRatio: 0.55,
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
         ),

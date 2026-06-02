@@ -16,11 +16,16 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   final ProductController _productController = ProductController();
-
   List<Product> _searchResults = [];
   bool _isLoading = false;
-  bool _hasSearched = false;
   Timer? _debounce;
+
+  String _formatCurrency(double amount) {
+    return amount.toStringAsFixed(0).replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]}.',
+        );
+  }
 
   @override
   void dispose() {
@@ -30,42 +35,29 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   void _onSearchChanged(String query) {
-    // Cancel previous timer
     if (_debounce?.isActive ?? false) _debounce!.cancel();
-
-    // Only search if query is not empty
-    if (query.trim().isEmpty) {
-      setState(() {
-        _searchResults = [];
-        _hasSearched = false;
-        _isLoading = false;
-      });
-      return;
-    }
-
-    // Create new timer (debounce 500ms)
     _debounce = Timer(const Duration(milliseconds: 500), () {
-      _performSearch(query);
+      if (query.isNotEmpty) {
+        _performSearch(query);
+      } else {
+        setState(() {
+          _searchResults = [];
+        });
+      }
     });
   }
 
   Future<void> _performSearch(String query) async {
-    if (query.trim().isEmpty) return;
-
     setState(() {
       _isLoading = true;
-      _hasSearched = true;
     });
 
     try {
-      final results = await _productController.searchProducts(query.trim());
-
-      if (mounted) {
-        setState(() {
-          _searchResults = results;
-          _isLoading = false;
-        });
-      }
+      final results = await _productController.searchProducts(query);
+      setState(() {
+        _searchResults = results;
+        _isLoading = false;
+      });
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -73,9 +65,10 @@ class _SearchScreenState extends State<SearchScreen> {
           _isLoading = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Search failed. Please try again.'),
+          const SnackBar(
+            content: Text('Tìm kiếm thất bại. Vui lòng thử lại.'),
             backgroundColor: Colors.red,
+            duration: Duration(seconds: 1),
           ),
         );
       }
@@ -85,47 +78,34 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 1,
+        elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black87),
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
         title: Container(
           height: 45,
           decoration: BoxDecoration(
-            color: Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(25),
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(10),
           ),
           child: TextField(
             controller: _searchController,
             autofocus: true,
             onChanged: _onSearchChanged,
             decoration: InputDecoration(
-              hintText: 'Search for products...',
+              hintText: 'Tìm kiếm sản phẩm...',
               hintStyle: GoogleFonts.quicksand(
                 fontSize: 14,
                 color: Colors.grey.shade500,
               ),
               prefixIcon: Icon(Icons.search, color: Colors.grey.shade600),
-              suffixIcon: _searchController.text.isNotEmpty
-                  ? IconButton(
-                      icon: Icon(Icons.clear, color: Colors.grey.shade600),
-                      onPressed: () {
-                        _searchController.clear();
-                        setState(() {
-                          _searchResults = [];
-                          _hasSearched = false;
-                        });
-                      },
-                    )
-                  : null,
               border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              contentPadding: const EdgeInsets.symmetric(vertical: 10),
             ),
-            style: GoogleFonts.quicksand(fontSize: 15),
           ),
         ),
       ),
@@ -139,10 +119,10 @@ class _SearchScreenState extends State<SearchScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(color: Colors.purple),
-            SizedBox(height: 16),
+            const CircularProgressIndicator(color: Colors.purple),
+            const SizedBox(height: 16),
             Text(
-              'Searching...',
+              'Đang tìm kiếm...',
               style: GoogleFonts.quicksand(
                 fontSize: 14,
                 color: Colors.grey.shade600,
@@ -153,30 +133,30 @@ class _SearchScreenState extends State<SearchScreen> {
       );
     }
 
-    if (!_hasSearched) {
+    if (_searchController.text.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.search,
+              Icons.search_rounded,
               size: 80,
               color: Colors.grey.shade300,
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
-              'Search for products',
+              'Tìm kiếm sản phẩm',
               style: GoogleFonts.quicksand(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
                 color: Colors.grey.shade600,
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
               child: Text(
-                'Enter product name or description',
+                'Nhập tên hoặc mô tả sản phẩm',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.quicksand(
                   fontSize: 14,
@@ -195,24 +175,24 @@ class _SearchScreenState extends State<SearchScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.search_off,
+              Icons.search_off_rounded,
               size: 80,
               color: Colors.grey.shade300,
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
-              'No products found',
+              'Không tìm thấy sản phẩm',
               style: GoogleFonts.quicksand(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
                 color: Colors.grey.shade600,
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
               child: Text(
-                'Try searching with different keywords',
+                'Thử tìm kiếm với từ khóa khác',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.quicksand(
                   fontSize: 14,
@@ -231,7 +211,7 @@ class _SearchScreenState extends State<SearchScreen> {
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: Text(
-            '${_searchResults.length} ${_searchResults.length == 1 ? 'result' : 'results'} found',
+            'Tìm thấy ${_searchResults.length} kết quả',
             style: GoogleFonts.quicksand(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -241,12 +221,12 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
         Expanded(
           child: GridView.builder(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               mainAxisSpacing: 16,
               crossAxisSpacing: 16,
-              childAspectRatio: 0.7,
+              childAspectRatio: 0.75,
             ),
             itemCount: _searchResults.length,
             itemBuilder: (context, index) {
@@ -277,7 +257,7 @@ class _SearchScreenState extends State<SearchScreen> {
             BoxShadow(
               color: Colors.grey.shade200,
               blurRadius: 8,
-              offset: Offset(0, 2),
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -288,12 +268,12 @@ class _SearchScreenState extends State<SearchScreen> {
             Expanded(
               flex: 3,
               child: Container(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-                  color: Colors.grey.shade100,
+                  color: Color(0xFFF5F5F5),
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                   child: CachedNetworkImage(
                     imageUrl: product.images.isNotEmpty ? product.images[0] : '',
                     fit: BoxFit.cover,
@@ -336,18 +316,22 @@ class _SearchScreenState extends State<SearchScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          '\$${product.price.toStringAsFixed(2)}',
-                          style: GoogleFonts.quicksand(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.purple,
+                        Expanded(
+                          child: Text(
+                            '${_formatCurrency(product.price)} VND',
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.quicksand(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.purple,
+                            ),
                           ),
                         ),
                         Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.star, size: 14, color: Colors.amber),
-                            SizedBox(width: 2),
+                            const Icon(Icons.star, size: 14, color: Colors.amber),
+                            const SizedBox(width: 2),
                             Text(
                               product.averageRating.toStringAsFixed(1),
                               style: GoogleFonts.quicksand(

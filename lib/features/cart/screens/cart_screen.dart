@@ -8,6 +8,13 @@ import 'package:vanh_store_app/features/cart/providers/cart_provider.dart';
 import 'package:vanh_store_app/features/cart/screens/checkout_screen.dart';
 import 'package:vanh_store_app/features/home/screens/main_screen.dart';
 
+String _formatCurrency(double amount) {
+  return amount.toStringAsFixed(0).replaceAllMapped(
+        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+        (Match m) => '${m[1]}.',
+      );
+}
+
 class CartScreen extends ConsumerStatefulWidget {
   const CartScreen({super.key});
 
@@ -16,6 +23,7 @@ class CartScreen extends ConsumerStatefulWidget {
 }
 
 class _CartScreenState extends ConsumerState<CartScreen> {
+
   @override
   Widget build(BuildContext context) {
     final cartData = ref.watch(cartProvider);
@@ -42,7 +50,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            'My Cart',
+            'Giỏ hàng',
             style: GoogleFonts.lato(
               color: Colors.white,
               fontSize: 28,
@@ -100,7 +108,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
           ),
           const SizedBox(height: 24),
           Text(
-            'Your Cart is Empty',
+            'Giỏ hàng trống',
             style: GoogleFonts.lato(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -109,7 +117,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            'Add some products to get started',
+            'Thêm sản phẩm để bắt đầu mua sắm',
             style: GoogleFonts.roboto(
               fontSize: 16,
               color: Colors.grey.shade500,
@@ -124,7 +132,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
               );
             },
             icon: const Icon(Icons.shopping_bag),
-            label: const Text('SHOP NOW'),
+            label: const Text('MUA NGAY'),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.deepPurple,
               foregroundColor: Colors.white,
@@ -149,22 +157,23 @@ class _CartScreenState extends ConsumerState<CartScreen> {
             padding: const EdgeInsets.all(16),
             itemCount: cartData.length,
             itemBuilder: (context, index) {
-              final cartItem = cartData.values.toList()[index];
+              final cartKey = cartData.keys.toList()[index];
+              final cartItem = cartData[cartKey]!;
               return _CartItemCard(
                 cartItem: cartItem,
                 onRemove: () {
                   ref.read(cartProvider.notifier).removeProduct(
-                        cartItem.productId,
+                        cartKey,
                       );
                 },
                 onIncrement: () {
                   ref.read(cartProvider.notifier).IncrementQuantity(
-                        cartItem.productId,
+                        cartKey,
                       );
                 },
                 onDecrement: () {
                   ref.read(cartProvider.notifier).DecrementQuantity(
-                        cartItem.productId,
+                        cartKey,
                       );
                 },
               );
@@ -198,7 +207,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
           ),
           const SizedBox(width: 12),
           Text(
-            'You have $itemCount ${itemCount == 1 ? 'item' : 'items'} in your cart',
+            'Bạn có $itemCount sản phẩm trong giỏ hàng',
             style: GoogleFonts.lato(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -233,7 +242,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Subtotal',
+                  'Tạm tính',
                   style: GoogleFonts.roboto(
                     fontSize: 14,
                     color: Colors.grey.shade600,
@@ -241,9 +250,8 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '\$${totalAmount.toStringAsFixed(2)}',
-                  style: GoogleFonts.lato(
-                    fontSize: 24,
+                  '${_formatCurrency(totalAmount)} VND',
+                  style: GoogleFonts.lato(                    fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: Colors.deepPurple,
                   ),
@@ -275,7 +283,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
               child: Row(
                 children: [
                   Text(
-                    'CHECKOUT',
+                    'THANH TOÁN',
                     style: GoogleFonts.roboto(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -385,14 +393,18 @@ class _CartItemCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        '\$${cartItem.price.toStringAsFixed(2)}',
-                        style: GoogleFonts.lato(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.deepPurple,
+                      Flexible(
+                        child: Text(
+                          '${_formatCurrency(cartItem.price)} VND',
+                          style: GoogleFonts.lato(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.deepPurple,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      const SizedBox(width: 8),
                       _buildQuantityControl(),
                     ],
                   ),

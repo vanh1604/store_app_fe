@@ -21,13 +21,13 @@ class ProductReview {
 
   factory ProductReview.fromMap(Map<String, dynamic> json) {
     return ProductReview(
-      id: json['_id'],
-      buyerId: json['buyerId'],
-      productId: json['productId'],
-      fullName: json['fullName'],
-      email: json['email'],
-      review: json['review'],
-      rating: json['rating'],
+      id: json['_id'] ?? '',
+      buyerId: json['buyerId'] ?? '',
+      productId: json['productId'] ?? '',
+      fullName: json['fullName'] ?? 'Anonymous',
+      email: json['email'] ?? '',
+      review: json['review'] ?? '',
+      rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
     );
   }
 

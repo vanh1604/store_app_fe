@@ -5,8 +5,9 @@ String getBaseUrl() {
     // Android Emulator truy cập host qua 10.0.2.2
     return 'http://10.0.2.2:3000';
   } else if (Platform.isIOS) {
-    // iOS Simulator: kHostIp = 'localhost'
-    // iPhone thật: kHostIp = IP Mac (được inject bởi Xcode pre-action)
+    // iOS Simulator: 'localhost'
+    // iOS Real Device: Replace 'localhost' with your Mac's IP address (e.g., '192.168.1.10')
+    // and ensure both are on the same Wi-Fi network.
     return 'http://localhost:3000';
   } else {
     return 'http://localhost:3000';

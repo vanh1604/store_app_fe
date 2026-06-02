@@ -45,6 +45,7 @@ class _OtpScreenState extends State<OtpScreen> {
         SnackBar(
           content: Text('Please enter all 6 digits'),
           backgroundColor: Colors.red,
+          duration: const Duration(seconds: 1),
         ),
       );
       return;
@@ -80,6 +81,7 @@ class _OtpScreenState extends State<OtpScreen> {
       SnackBar(
         content: Text('OTP has been resent to ${widget.email}'),
         backgroundColor: Colors.green,
+        duration: const Duration(seconds: 1),
       ),
     );
   }
@@ -264,7 +266,7 @@ class _OtpScreenState extends State<OtpScreen> {
                                   color: Colors.white,
                                 )
                               : Text(
-                                  'Verify',
+                                  'Xác thực',
                                   style: GoogleFonts.getFont(
                                     'Lato',
                                     fontSize: 18,
@@ -283,7 +285,7 @@ class _OtpScreenState extends State<OtpScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "Didn't receive the code?",
+                      "Không nhận được mã?",
                       style: GoogleFonts.roboto(
                         fontWeight: FontWeight.w500,
                         letterSpacing: 0.5,
@@ -303,7 +305,7 @@ class _OtpScreenState extends State<OtpScreen> {
                         : InkWell(
                             onTap: resendOtp,
                             child: Text(
-                              'Resend',
+                              'Gửi lại',
                               style: GoogleFonts.roboto(
                                 color: Color(0xFF103DE5),
                                 letterSpacing: 0.5,

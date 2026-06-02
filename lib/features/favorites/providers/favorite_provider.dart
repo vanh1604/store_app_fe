@@ -57,27 +57,60 @@ class FavoriteNotifier extends Notifier<Map<String, Favorite>> {
     required int productQuantity,
     required String fullName,
   }) {
-    state[productId] = Favorite(
-      productName: productName,
-      quantity: quantity,
-      price: price,
-      image: image,
-      category: category,
-      vendorId: vendorId,
-      productId: productId,
-      productDescription: productDescription,
-      productQuantity: productQuantity,
-      fullName: fullName,
-    );
-    state = {...state};
+    state = {
+      ...state,
+      productId: Favorite(
+        productName: productName,
+        quantity: quantity,
+        price: price,
+        image: image,
+        category: category,
+        vendorId: vendorId,
+        productId: productId,
+        productDescription: productDescription,
+        productQuantity: productQuantity,
+        fullName: fullName,
+      ),
+    };
     _saveFavorites();
   }
 
-  void removeFavoriteItem(String productId) {
-    if (state.containsKey(productId)) {
-      state.remove(productId);
-      state = {...state};
+  void removeItem(String productId) {
+    final newState = Map<String, Favorite>.from(state);
+    if (newState.containsKey(productId)) {
+      newState.remove(productId);
+      state = newState;
       _saveFavorites();
+    }
+  }
+
+  void toggleFavorite({
+    required String productName,
+    required int quantity,
+    required double price,
+    required List<String> image,
+    required String category,
+    required String vendorId,
+    required String productId,
+    required String productDescription,
+    required int productQuantity,
+    required String fullName,
+  }) {
+    if (state.containsKey(productId)) {
+      removeItem(productId);
+    } else {
+      addProductToFavorite(
+        productName: productName,
+        quantity: quantity,
+        price: price,
+        image: image,
+        category: category,
+        vendorId: vendorId,
+        productId: productId,
+        productDescription: productDescription,
+        productQuantity: productQuantity,
+        fullName: fullName,
+      );
     }
   }
 
