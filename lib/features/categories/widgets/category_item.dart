@@ -1,20 +1,20 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vanh_store_app/features/categories/controllers/category_controller.dart';
-
-import 'package:vanh_store_app/features/categories/providers/category_provider.dart';
+import 'package:vanh_store_app/features/categories/models/category.dart';
 import 'package:vanh_store_app/features/categories/screens/inner_category_screen.dart';
 import 'package:vanh_store_app/core/widgets/reusable_text_widget.dart';
 
-class CategoryItemWidget extends ConsumerStatefulWidget {
+class CategoryItemWidget extends StatefulWidget {
   const CategoryItemWidget({super.key});
 
   @override
-  ConsumerState<CategoryItemWidget> createState() => _CategoryItemWidgetState();
+  State<CategoryItemWidget> createState() => _CategoryItemWidgetState();
 }
 
-class _CategoryItemWidgetState extends ConsumerState<CategoryItemWidget> {
+class _CategoryItemWidgetState extends State<CategoryItemWidget> {
+  List<Category> _categories = [];
+
   @override
   void initState() {
     super.initState();
@@ -25,15 +25,19 @@ class _CategoryItemWidgetState extends ConsumerState<CategoryItemWidget> {
     final CategoryController categoryController = CategoryController();
     try {
       final categories = await categoryController.loadCategories();
-      ref.read(categoryProvider.notifier).setCategories(categories);
+      if (mounted) {
+        setState(() {
+          _categories = categories;
+        });
+      }
     } catch (e) {
-      print(e);
+      debugPrint('Error fetching categories: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final categories = ref.watch(categoryProvider);
+    final categories = _categories;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -47,6 +51,7 @@ class _CategoryItemWidgetState extends ConsumerState<CategoryItemWidget> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             itemBuilder: (context, index) {
               return Padding(
+                key: ValueKey(categories[index].name),
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: InkWell(
                   onTap: () {

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:http/http.dart' as http;
 import 'package:vanh_store_app/features/orders/models/order.dart';
 import 'package:vanh_store_app/core/services/http_response_handler.dart';
@@ -94,7 +95,7 @@ class OrderController {
         );
       }
     } catch (e) {
-      print("Error: $e");
+      debugPrint("Error: $e");
       throw Exception('An error occurred while loading orders: $e');
     }
   }
@@ -114,7 +115,7 @@ class OrderController {
         },
       );
     } catch (e) {
-      print("Error: $e");
+      debugPrint("Error: $e");
     }
   }
 

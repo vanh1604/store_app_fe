@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:vanh_store_app/features/categories/models/category.dart';
 import 'package:vanh_store_app/features/categories/widgets/inner_category_content_widget.dart';
 import 'package:vanh_store_app/features/categories/widgets/inner_header_widget.dart';
+import 'package:vanh_store_app/features/home/home.dart';
 
 class InnerCategoryScreen extends StatelessWidget {
   const InnerCategoryScreen({super.key, required this.category});
@@ -14,7 +15,7 @@ class InnerCategoryScreen extends StatelessWidget {
         preferredSize: Size.fromHeight(
           MediaQuery.of(context).size.height * 0.2,
         ),
-        child: InnerHeaderWidget(),
+        child: HeaderWidget(),
       ),
       body: InnerCategoryContentWidget(category: category),
     );

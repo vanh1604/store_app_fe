@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vanh_store_app/features/products/controllers/product_controller.dart';
 import 'package:vanh_store_app/features/products/models/product.dart';
-import 'package:vanh_store_app/features/products/providers/top_rated_product_provider.dart';
 import 'package:vanh_store_app/features/products/widgets/product_item_widget.dart';
 
-class TopRatingProductsWidget extends ConsumerStatefulWidget {
+class TopRatingProductsWidget extends StatefulWidget {
   const TopRatingProductsWidget({super.key});
 
   @override
-  ConsumerState<TopRatingProductsWidget> createState() =>
+  State<TopRatingProductsWidget> createState() =>
       _TopRatingProductsWidgetState();
 }
 
-class _TopRatingProductsWidgetState
-    extends ConsumerState<TopRatingProductsWidget> {
+class _TopRatingProductsWidgetState extends State<TopRatingProductsWidget> {
+  List<Product> _topRatedProducts = [];
+
   @override
   void initState() {
     super.initState();
@@ -25,7 +24,11 @@ class _TopRatingProductsWidgetState
     final ProductController productController = ProductController();
     try {
       final products = await productController.topRatedProducts();
-      ref.read(topRatedProductProvider.notifier).setProducts(products);
+      if (mounted) {
+        setState(() {
+          _topRatedProducts = products;
+        });
+      }
     } catch (e) {
       debugPrint('Error fetching top rated products: $e');
     }
@@ -33,7 +36,7 @@ class _TopRatingProductsWidgetState
 
   @override
   Widget build(BuildContext context) {
-    final topRatedProducts = ref.watch(topRatedProductProvider);
+    final topRatedProducts = _topRatedProducts;
     return SizedBox(
       height: 320,
       child: ListView.builder(
@@ -42,6 +45,7 @@ class _TopRatingProductsWidgetState
         itemBuilder: (context, index) {
           Product product = topRatedProducts[index];
           return ProductItemWidget(
+            key: ValueKey('toprated-${product.id}'),
             product: product,
             heroTag: 'toprated-${product.id}',
           );

@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vanh_store_app/features/products/controllers/product_controller.dart';
 import 'package:vanh_store_app/features/products/models/product.dart';
-import 'package:vanh_store_app/features/products/providers/product_provider.dart';
 import 'package:vanh_store_app/features/products/widgets/product_item_widget.dart';
 
-class PopularProductsWidget extends ConsumerStatefulWidget {
+class PopularProductsWidget extends StatefulWidget {
   const PopularProductsWidget({super.key});
 
   @override
-  ConsumerState<PopularProductsWidget> createState() =>
-      _PopularProductsWidgetState();
+  State<PopularProductsWidget> createState() => _PopularProductsWidgetState();
 }
 
-class _PopularProductsWidgetState extends ConsumerState<PopularProductsWidget> {
+class _PopularProductsWidgetState extends State<PopularProductsWidget> {
+  List<Product> _popularProducts = [];
+
   @override
   void initState() {
     super.initState();
@@ -24,15 +23,19 @@ class _PopularProductsWidgetState extends ConsumerState<PopularProductsWidget> {
     final ProductController productController = ProductController();
     try {
       final products = await productController.loadPopularProducts();
-      ref.read(productProvider.notifier).setProducts(products);
+      if (mounted) {
+        setState(() {
+          _popularProducts = products;
+        });
+      }
     } catch (e) {
-      print(e);
+      debugPrint('Error fetching popular products: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final popularProducts = ref.watch(productProvider);
+    final popularProducts = _popularProducts;
     return SizedBox(
       height: 320,
       child: ListView.builder(
@@ -41,6 +44,7 @@ class _PopularProductsWidgetState extends ConsumerState<PopularProductsWidget> {
         itemBuilder: (context, index) {
           Product product = popularProducts[index];
           return ProductItemWidget(
+            key: ValueKey('popular-${product.id}'),
             product: product,
             heroTag: 'popular-${product.id}',
           );

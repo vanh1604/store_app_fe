@@ -7,13 +7,7 @@ import 'package:vanh_store_app/features/cart/models/cart.dart';
 import 'package:vanh_store_app/features/cart/providers/cart_provider.dart';
 import 'package:vanh_store_app/features/cart/screens/checkout_screen.dart';
 import 'package:vanh_store_app/features/home/screens/main_screen.dart';
-
-String _formatCurrency(double amount) {
-  return amount.toStringAsFixed(0).replaceAllMapped(
-        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-        (Match m) => '${m[1]}.',
-      );
-}
+import 'package:vanh_store_app/core/utils/formatters.dart';
 
 class CartScreen extends ConsumerStatefulWidget {
   const CartScreen({super.key});
@@ -250,7 +244,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${_formatCurrency(totalAmount)} VND',
+                  '${formatCurrency(totalAmount)} VND',
                   style: GoogleFonts.lato(                    fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: Colors.deepPurple,
@@ -395,7 +389,7 @@ class _CartItemCard extends StatelessWidget {
                     children: [
                       Flexible(
                         child: Text(
-                          '${_formatCurrency(cartItem.price)} VND',
+                          '${formatCurrency(cartItem.price)} VND',
                           style: GoogleFonts.lato(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
 import 'package:vanh_store_app/core/config/global_variables.dart';
 import 'package:vanh_store_app/features/products/models/product.dart';
 
@@ -23,7 +24,7 @@ class ProductController {
         throw Exception("Failed to load products");
       }
     } catch (e) {
-      print("Error: $e");
+      debugPrint("Error: $e");
       throw Exception('An error occurred while loading products: $e');
     }
   }
@@ -46,7 +47,7 @@ class ProductController {
         throw Exception("Failed to load products by category");
       }
     } catch (e) {
-      print("Error: $e");
+      debugPrint("Error: $e");
       throw Exception(
         'An error occurred while loading products by category: $e',
       );
@@ -69,7 +70,7 @@ class ProductController {
         throw Exception("Failed to load products by id");
       }
     } catch (e) {
-      print("Error: $e");
+      debugPrint("Error: $e");
       throw Exception('An error occurred while loading products by id: $e');
     }
   }
@@ -145,7 +146,7 @@ class ProductController {
         throw Exception("Failed to search products");
       }
     } catch (e) {
-      print("Error: $e");
+      debugPrint("Error: $e");
       throw Exception('An error occurred while searching products: $e');
     }
   }

@@ -38,7 +38,16 @@ class ChatService {
     }
 
     if (response.statusCode != 200) {
-      throw ChatServiceException('Lỗi kết nối. Vui lòng thử lại.');
+      // Lấy message thật từ backend (vd lỗi cấu hình AI / hết quota) thay vì
+      // luôn hiện "Lỗi kết nối" chung chung — giúp debug dễ hơn.
+      String serverMsg = 'Lỗi kết nối. Vui lòng thử lại.';
+      try {
+        final body = jsonDecode(response.body);
+        if (body is Map && body['message'] is String) {
+          serverMsg = body['message'] as String;
+        }
+      } catch (_) {}
+      throw ChatServiceException(serverMsg);
     }
 
     final body = jsonDecode(response.body);

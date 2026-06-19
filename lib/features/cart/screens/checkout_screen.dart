@@ -9,6 +9,7 @@ import 'package:vanh_store_app/features/authentication/providers/user_provider.d
 import 'package:vanh_store_app/core/services/http_response_handler.dart';
 import 'package:vanh_store_app/features/orders/screens/shipping_address_screen.dart';
 import 'package:vanh_store_app/features/home/screens/main_screen.dart';
+import 'package:vanh_store_app/core/utils/formatters.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({super.key});
@@ -21,13 +22,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   String selectedPaymentMethod = 'stripe';
   bool _isLoading = false;
   final OrderController orderController = OrderController();
-
-  String _formatCurrency(double amount) {
-    return amount.toStringAsFixed(0).replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (Match m) => '${m[1]}.',
-        );
-  }
 
   Future<void> handleStripePayment(BuildContext context) async {
     List<String> createdOrderIds = [];
@@ -98,7 +92,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           merchantDisplayName: 'Vanh Store',
           style: ThemeMode.light,
           returnURL: 'vanhstore://redirect',
-          applePay: const PaymentSheetApplePay(merchantCountryCode: 'VN'),
+          // Apple Pay tạm tắt: merchant ID chưa được provision trong Apple Developer
+          // nên khi bật sẽ khiến PaymentSheet không hiện trên iOS. Bật lại khi đã có
+          // merchant ID thật và cấu hình Xcode.
           googlePay: const PaymentSheetGooglePay(
             merchantCountryCode: 'VN',
             testEnv: true,
@@ -368,7 +364,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  "${_formatCurrency(cartItem.price)} VND",
+                                  "${formatCurrency(cartItem.price)} VND",
                                   style: GoogleFonts.robotoSerif(
                                     fontSize: 14,
                                     color: Colors.pink,

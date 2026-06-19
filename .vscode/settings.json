@@ -1,3 +1,4 @@
 {
-    "cmake.sourceDirectory": "/home/vanh/flutter/store_app_fe/windows/runner"
+    "cmake.sourceDirectory": "/home/vanh/flutter/store_app_fe/windows/runner",
+    "dart.flutterHotReloadOnSave": "all"
 }

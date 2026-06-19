@@ -59,9 +59,9 @@ void _configureSystemUI() {
 Future<void> _initializeStripe() async {
   try {
     Stripe.publishableKey = _stripePublishableKey;
-    // To use Apple Pay, a merchant identifier is required and must be configured in Xcode.
-    // If you don't have one yet, you can comment out the next line to test other payment methods.
-    Stripe.merchantIdentifier = 'merchant.vanh.store.app';
+    // Apple Pay chưa dùng: cần merchant identifier thật được provision trong Apple
+    // Developer + cấu hình Xcode. Khi bật lại Apple Pay, set Stripe.merchantIdentifier
+    // ở đây và thêm tham số applePay trong initPaymentSheet (checkout_screen.dart).
     await Stripe.instance.applySettings();
     debugPrint('Stripe initialized successfully');
   } catch (e) {

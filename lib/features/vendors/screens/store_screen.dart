@@ -1,19 +1,18 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vanh_store_app/features/vendors/controllers/vendor_controller.dart';
 import 'package:vanh_store_app/features/vendors/models/vendor.dart';
-import 'package:vanh_store_app/features/vendors/providers/vendor_provider.dart';
 import 'package:vanh_store_app/features/vendors/screens/vendor_store_detail_screen.dart';
 
-class StoreScreen extends ConsumerStatefulWidget {
+class StoreScreen extends StatefulWidget {
   const StoreScreen({super.key});
 
   @override
-  ConsumerState<StoreScreen> createState() => _StoreScreenState();
+  State<StoreScreen> createState() => _StoreScreenState();
 }
 
-class _StoreScreenState extends ConsumerState<StoreScreen> {
+class _StoreScreenState extends State<StoreScreen> {
+  List<Vendor> _vendors = [];
   bool _isLoading = true;
   final VendorController _vendorController = VendorController();
 
@@ -30,7 +29,11 @@ class _StoreScreenState extends ConsumerState<StoreScreen> {
 
     try {
       final vendors = await _vendorController.fetchAllVendorsStore();
-      ref.read(vendorProvider.notifier).setVendors(vendors);
+      if (mounted) {
+        setState(() {
+          _vendors = vendors;
+        });
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -52,7 +55,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final vendors = ref.watch(vendorProvider);
+    final vendors = _vendors;
 
     return Scaffold(
       appBar: AppBar(

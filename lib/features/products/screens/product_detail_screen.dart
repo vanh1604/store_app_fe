@@ -7,9 +7,9 @@ import 'package:vanh_store_app/features/products/controllers/product_controller.
 import 'package:vanh_store_app/features/products/models/product.dart';
 import 'package:vanh_store_app/features/cart/providers/cart_provider.dart';
 import 'package:vanh_store_app/features/favorites/providers/favorite_provider.dart';
-import 'package:vanh_store_app/features/products/providers/related_product_provider.dart';
 import 'package:vanh_store_app/features/products/widgets/product_reviews_widget.dart';
 import 'package:vanh_store_app/core/services/http_response_handler.dart';
+import 'package:vanh_store_app/core/utils/formatters.dart';
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
   const ProductDetailScreen({super.key, required this.productId, this.heroTag});
@@ -22,6 +22,7 @@ class ProductDetailScreen extends ConsumerStatefulWidget {
 class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
     with SingleTickerProviderStateMixin {
   late Product _productData;
+  List<Product> _relatedProducts = [];
   bool _isLoading = true;
   bool _hasError = false;
   int _currentImageIndex = 0;
@@ -30,13 +31,6 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
   String? _selectedSize;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
-
-  String _formatCurrency(double amount) {
-    return amount.toStringAsFixed(0).replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (Match m) => '${m[1]}.',
-        );
-  }
 
   @override
   void initState() {
@@ -85,7 +79,9 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
     try {
       final relatedProducts = await ProductController().relatedProducts(widget.productId!);
       if (mounted) {
-        ref.read(relatedProductProvider.notifier).setProducts(relatedProducts);
+        setState(() {
+          _relatedProducts = relatedProducts;
+        });
       }
     } catch (e) {
       debugPrint("Lỗi load related products: $e");
@@ -94,8 +90,9 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    final cartproviderData = ref.watch(cartProvider.notifier);
+    final cartproviderData = ref.read(cartProvider.notifier);
     final favoriteProviderData = ref.read(favoriteProvider.notifier);
+    // Theo dõi favoriteProvider để rebuild icon yêu thích khi danh sách thay đổi.
     ref.watch(favoriteProvider);
     final cartData = ref.watch(cartProvider);
 
@@ -387,9 +384,9 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
                       (v) => v.id == _selectedVariantId,
                       orElse: () => _productData.variants.first,
                     );
-                    return _formatCurrency(variant.price);
+                    return formatCurrency(variant.price);
                   }
-                  return _formatCurrency(_productData.price);
+                  return formatCurrency(_productData.price);
                 }(),
                 style: GoogleFonts.quicksand(
                   fontSize: 32,
@@ -732,7 +729,7 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
   }
 
   Widget _buildRelatedProductsSection() {
-    final relatedProducts = ref.watch(relatedProductProvider);
+    final relatedProducts = _relatedProducts;
 
     if (relatedProducts.isEmpty) {
       return SizedBox.shrink();
@@ -926,7 +923,7 @@ class ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
                     SizedBox(height: 4),
                     // Price
                     Text(
-                      '${_formatCurrency(product.price)} VND',
+                      '${formatCurrency(product.price)} VND',
                       style: GoogleFonts.quicksand(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,

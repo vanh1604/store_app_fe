@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vanh_store_app/features/chat/models/chat_product.dart';
 import 'package:vanh_store_app/features/products/screens/product_detail_screen.dart';
+import 'package:vanh_store_app/core/utils/formatters.dart';
 
 class ProductCardChat extends StatelessWidget {
   const ProductCardChat({super.key, required this.product});
@@ -12,13 +13,6 @@ class ProductCardChat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final thumbnail = product.images.isNotEmpty ? product.images.first : null;
-
-    String formatCurrency(double amount) {
-      return amount.toStringAsFixed(0).replaceAllMapped(
-            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-            (Match m) => '${m[1]}.',
-          );
-    }
 
     return GestureDetector(
       onTap: () => Navigator.push(

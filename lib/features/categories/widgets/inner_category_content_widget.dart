@@ -26,7 +26,6 @@ class _InnerCategoryContentWidgetState
   late Future<List<Product>> _futureProducts;
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _subcategories = SubcategoryController().getSubCategoriesByCategoryName(
       widget.category!.name,

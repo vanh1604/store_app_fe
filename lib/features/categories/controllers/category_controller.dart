@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:vanh_store_app/core/config/global_variables.dart';
 import 'package:vanh_store_app/features/categories/models/category.dart';
 
@@ -24,7 +25,7 @@ class CategoryController {
         throw Exception("Failed to load categories");
       }
     } catch (e) {
-      print("Error: $e");
+      debugPrint("Error: $e");
       throw Exception('An error occurred while loading categories: $e');
     }
   }

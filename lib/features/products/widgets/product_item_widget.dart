@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vanh_store_app/features/products/models/product.dart';
-import 'package:vanh_store_app/features/cart/providers/cart_provider.dart';
 import 'package:vanh_store_app/features/favorites/providers/favorite_provider.dart';
 import 'package:vanh_store_app/core/services/http_response_handler.dart';
 import 'package:vanh_store_app/features/products/screens/product_detail_screen.dart';
+import 'package:vanh_store_app/core/utils/formatters.dart';
 
 class ProductItemWidget extends ConsumerStatefulWidget {
   const ProductItemWidget({super.key, required this.product, this.heroTag});
@@ -18,22 +18,11 @@ class ProductItemWidget extends ConsumerStatefulWidget {
 }
 
 class _ProductItemWidgetState extends ConsumerState<ProductItemWidget> {
-  String _formatCurrency(double amount) {
-    return amount
-        .toStringAsFixed(0)
-        .replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (Match m) => '${m[1]}.',
-        );
-  }
 
   @override
   Widget build(BuildContext context) {
-    int selectedQuantity = 1;
-    final cartproviderData = ref.watch(cartProvider.notifier);
     final favoriteProviderData = ref.read(favoriteProvider.notifier);
-    final cartData = ref.watch(cartProvider);
-    final isInCart = cartData.containsKey(widget.product!.id);
+    // Theo dõi favoriteProvider để rebuild icon yêu thích khi danh sách thay đổi.
     ref.watch(favoriteProvider);
 
     return InkWell(
@@ -199,7 +188,7 @@ class _ProductItemWidgetState extends ConsumerState<ProductItemWidget> {
                     children: [
                       Expanded(
                         child: Text(
-                          '${_formatCurrency(widget.product!.price)} VND',
+                          '${formatCurrency(widget.product!.price)} VND',
                           style: GoogleFonts.quicksand(
                             fontSize: 15,
                             color: const Color(0xff3BB77E),

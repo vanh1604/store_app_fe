@@ -3,17 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vanh_store_app/features/orders/controllers/order_controller.dart';
-import 'package:vanh_store_app/features/orders/providers/order_provider.dart';
 import 'package:vanh_store_app/features/authentication/providers/user_provider.dart';
 import 'package:vanh_store_app/features/orders/screens/order_detail_screen.dart';
 import 'package:vanh_store_app/features/orders/models/order.dart';
-
-String _formatCurrency(double amount) {
-  return amount.toStringAsFixed(0).replaceAllMapped(
-        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-        (Match m) => '${m[1]}.',
-      );
-}
+import 'package:vanh_store_app/core/utils/formatters.dart';
 
 class OrderScreen extends ConsumerStatefulWidget {
   const OrderScreen({super.key});
@@ -24,6 +17,7 @@ class OrderScreen extends ConsumerStatefulWidget {
 
 class _OrderScreenState extends ConsumerState<OrderScreen> {
   final OrderController _orderController = OrderController();
+  List<Order> _orders = [];
   bool _isInitialLoading = true;
 
   @override
@@ -37,7 +31,11 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
     if (user != null) {
       try {
         final orders = await _orderController.loadOrders(buyerId: user.id);
-        ref.read(orderProvider.notifier).setOrders(orders);
+        if (mounted) {
+          setState(() {
+            _orders = orders;
+          });
+        }
       } catch (e) {
         debugPrint("Lỗi khi tải đơn hàng: $e");
       } finally {
@@ -84,7 +82,7 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final orders = ref.watch(orderProvider);
+    final orders = _orders;
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
@@ -288,7 +286,7 @@ class _OrderCard extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          '${_formatCurrency(order.productPrice)} VND',
+          '${formatCurrency(order.productPrice)} VND',
           style: GoogleFonts.lato(
             color: Colors.deepPurple,
             fontSize: 16,

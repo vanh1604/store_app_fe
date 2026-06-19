@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
 import 'package:vanh_store_app/core/config/global_variables.dart';
 import 'package:vanh_store_app/features/products/models/product_review.dart';
 import 'package:vanh_store_app/core/services/http_response_handler.dart';
@@ -39,7 +40,7 @@ class ProductReviewController {
         },
       );
     } catch (e) {
-      print("Error: $e");
+      debugPrint("Error: $e");
     }
   }
 
@@ -63,7 +64,7 @@ class ProductReviewController {
         throw Exception("Failed to fetch reviews: ${res.statusCode}");
       }
     } catch (e) {
-      print("Error fetching reviews: $e");
+      debugPrint("Error fetching reviews: $e");
       return [];
     }
   }

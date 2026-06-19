@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vanh_store_app/features/products/controllers/product_review_controller.dart';
 import 'package:vanh_store_app/features/orders/models/order.dart';
+import 'package:vanh_store_app/core/utils/formatters.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   const OrderDetailScreen({super.key, required this.order});
@@ -18,13 +19,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   final ProductReviewController _productReviewController =
       ProductReviewController();
   double rating = 0.0;
-
-  String _formatCurrency(double amount) {
-    return amount.toStringAsFixed(0).replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (Match m) => '${m[1]}.',
-        );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -150,7 +144,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                           ),
                                           SizedBox(height: 4),
                                           Text(
-                                            "${_formatCurrency(order.productPrice)} VND",
+                                            "${formatCurrency(order.productPrice)} VND",
                                             style: GoogleFonts.montserrat(
                                               color: Color(0XFF0B0C1E),
                                               fontWeight: FontWeight.w600,

@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:vanh_store_app/features/products/controllers/product_controller.dart';
 import 'package:vanh_store_app/features/products/models/product.dart';
 import 'package:vanh_store_app/features/products/screens/product_detail_screen.dart';
+import 'package:vanh_store_app/core/utils/formatters.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -19,13 +20,6 @@ class _SearchScreenState extends State<SearchScreen> {
   List<Product> _searchResults = [];
   bool _isLoading = false;
   Timer? _debounce;
-
-  String _formatCurrency(double amount) {
-    return amount.toStringAsFixed(0).replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (Match m) => '${m[1]}.',
-        );
-  }
 
   @override
   void dispose() {
@@ -318,7 +312,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       children: [
                         Expanded(
                           child: Text(
-                            '${_formatCurrency(product.price)} VND',
+                            '${formatCurrency(product.price)} VND',
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.quicksand(
                               fontSize: 16,

@@ -1,19 +1,17 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vanh_store_app/features/banners/controllers/banner_controller.dart';
 import 'package:vanh_store_app/features/banners/models/banner.dart';
-import 'package:vanh_store_app/features/banners/providers/banner_provider.dart';
 
-class BannerWidget extends ConsumerStatefulWidget {
+class BannerWidget extends StatefulWidget {
   const BannerWidget({super.key});
 
   @override
-  ConsumerState<BannerWidget> createState() => _BannerWidgetState();
+  State<BannerWidget> createState() => _BannerWidgetState();
 }
 
-class _BannerWidgetState extends ConsumerState<BannerWidget> {
-  late Future<List<BannerModel>> _bannersFuture;
+class _BannerWidgetState extends State<BannerWidget> {
+  List<BannerModel> _banners = [];
 
   @override
   void initState() {
@@ -25,15 +23,19 @@ class _BannerWidgetState extends ConsumerState<BannerWidget> {
     final bannerController = BannerController();
     try {
       final banners = await bannerController.loadBanners();
-      ref.read(bannerProvider.notifier).setBanners(banners);
+      if (mounted) {
+        setState(() {
+          _banners = banners;
+        });
+      }
     } catch (e) {
-      print(e);
+      debugPrint('Error fetching banners: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final banners = ref.watch(bannerProvider);
+    final banners = _banners;
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Container(
@@ -47,6 +49,7 @@ class _BannerWidgetState extends ConsumerState<BannerWidget> {
           itemCount: banners.length,
           itemBuilder: (context, index) {
             return ClipRRect(
+              key: ValueKey(banners[index].id),
               borderRadius: BorderRadius.circular(8),
               child: CachedNetworkImage(
                 imageUrl: banners[index].image,

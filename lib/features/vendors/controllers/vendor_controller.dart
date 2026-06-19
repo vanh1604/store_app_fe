@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
 import 'package:vanh_store_app/core/config/global_variables.dart';
 import 'package:vanh_store_app/features/vendors/models/vendor.dart';
 
@@ -25,7 +26,7 @@ class VendorController {
         throw Exception("Failed to load vendors");
       }
     } catch (e) {
-      print("Error: $e");
+      debugPrint("Error: $e");
       return [];
     }
   }

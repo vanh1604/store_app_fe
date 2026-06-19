@@ -3,8 +3,6 @@ export 'controllers/category_controller.dart';
 export 'controllers/subcategory_controller.dart';
 export 'models/category.dart';
 export 'models/subcategory.dart';
-export 'providers/category_provider.dart';
-export 'providers/subcategory_provider.dart';
 export 'screens/category_screen.dart';
 export 'screens/inner_category_screen.dart';
 export 'widgets/category_item.dart';

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:vanh_store_app/core/config/global_variables.dart';
 import 'package:vanh_store_app/features/categories/models/subcategory.dart';
 import 'package:http/http.dart' as http;
@@ -27,13 +28,13 @@ class SubcategoryController {
           return [];
         }
       } else if (response.statusCode == 404) {
-        print('Subcategory not found');
+        debugPrint('Subcategory not found');
         return [];
       } else {
         throw Exception("Failed to load subcategories");
       }
     } catch (e) {
-      print("Error: $e");
+      debugPrint("Error: $e");
       return [];
     }
   }

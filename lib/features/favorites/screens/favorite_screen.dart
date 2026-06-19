@@ -4,13 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vanh_store_app/features/favorites/providers/favorite_provider.dart';
 import 'package:vanh_store_app/features/home/screens/main_screen.dart';
-
-String _formatCurrency(double amount) {
-  return amount.toStringAsFixed(0).replaceAllMapped(
-        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-        (Match m) => '${m[1]}.',
-      );
-}
+import 'package:vanh_store_app/core/utils/formatters.dart';
 
 class FavoriteScreen extends ConsumerWidget {
   const FavoriteScreen({super.key});
@@ -329,7 +323,7 @@ class _FavoriteItemCard extends StatelessWidget {
       children: [
         // Price
         Text(
-          '${_formatCurrency(item.price)} VND',
+          '${formatCurrency(item.price)} VND',
           style: GoogleFonts.lato(
             fontSize: 18,
             fontWeight: FontWeight.bold,

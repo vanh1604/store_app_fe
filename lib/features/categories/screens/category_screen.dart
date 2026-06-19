@@ -1,23 +1,23 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vanh_store_app/features/categories/controllers/category_controller.dart';
 import 'package:vanh_store_app/features/categories/controllers/subcategory_controller.dart';
 import 'package:vanh_store_app/features/categories/models/category.dart';
-import 'package:vanh_store_app/features/categories/providers/category_provider.dart';
-import 'package:vanh_store_app/features/categories/providers/subcategory_provider.dart';
+import 'package:vanh_store_app/features/categories/models/subcategory.dart';
 import 'package:vanh_store_app/features/products/screens/subcategory_product_screen.dart';
 import 'package:vanh_store_app/features/categories/widgets/subcategory_tile_widget.dart';
 import 'package:vanh_store_app/features/home/widgets/header_widget.dart';
 
-class CategoryScreen extends ConsumerStatefulWidget {
+class CategoryScreen extends StatefulWidget {
   const CategoryScreen({super.key});
   @override
-  ConsumerState<CategoryScreen> createState() => _CategoryScreenState();
+  State<CategoryScreen> createState() => _CategoryScreenState();
 }
 
-class _CategoryScreenState extends ConsumerState<CategoryScreen> {
+class _CategoryScreenState extends State<CategoryScreen> {
+  List<Category> _categories = [];
+  List<Subcategory> _subcategories = [];
   Category? _selectedCategory;
   bool _isLoadingCategories = true;
   bool _isLoadingSubcategories = false;
@@ -39,9 +39,8 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen> {
     final categories = await _categoryController.loadCategories();
 
     if (mounted) {
-      ref.read(categoryProvider.notifier).setCategories(categories);
-
       setState(() {
+        _categories = categories;
         _isLoadingCategories = false;
       });
 
@@ -63,9 +62,8 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen> {
         .getSubCategoriesByCategoryName(categoryName);
 
     if (mounted) {
-      ref.read(subcategoryProvider.notifier).setSubcategories(subcategories);
-
       setState(() {
+        _subcategories = subcategories;
         _isLoadingSubcategories = false;
       });
     }
@@ -73,8 +71,8 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final categories = ref.watch(categoryProvider);
-    final subcategories = ref.watch(subcategoryProvider);
+    final categories = _categories;
+    final subcategories = _subcategories;
 
     return Scaffold(
       appBar: PreferredSize(
@@ -172,13 +170,6 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen> {
                                       : Colors.black87,
                                 ),
                               ),
-                              trailing: isSelected
-                                  ? Icon(
-                                      Icons.arrow_forward_ios,
-                                      size: 14,
-                                      color: Colors.purple,
-                                    )
-                                  : null,
                             ),
                           ),
                         );
@@ -241,7 +232,9 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen> {
                                 imageUrl: _selectedCategory!.banner,
                                 fit: BoxFit.cover,
                                 width: double.infinity,
-                                placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                                placeholder: (context, url) => const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
                                 errorWidget: (context, url, error) {
                                   return Container(
                                     color: Colors.grey.shade200,
