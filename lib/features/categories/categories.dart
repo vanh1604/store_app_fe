@@ -8,5 +8,4 @@ export 'screens/inner_category_screen.dart';
 export 'widgets/category_item.dart';
 export 'widgets/inner_banner_widget.dart';
 export 'widgets/inner_category_content_widget.dart';
-export 'widgets/inner_header_widget.dart';
 export 'widgets/subcategory_tile_widget.dart';

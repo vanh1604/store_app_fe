@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vanh_store_app/features/authentication/controllers/auth_controller.dart';
 import 'package:vanh_store_app/features/authentication/screens/login_screen.dart';
+import 'package:vanh_store_app/features/authentication/widgets/auth_text_field.dart';
 
 class RegisterScreen extends StatefulWidget {
-  RegisterScreen({super.key});
+  const RegisterScreen({super.key});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -17,6 +18,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   late String fullName;
   late String password;
   bool isLoading = false;
+  bool _obscurePassword = true;
+
   void registerUser() async {
     setState(() {
       isLoading = true;
@@ -38,306 +41,218 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white.withOpacity(0.95),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Center(
-          child: SingleChildScrollView(
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Đăng ký tài khoản của bạn',
-                    style: GoogleFonts.getFont(
-                      'Lato',
-                      color: Color(0xFF0d120E),
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.2,
-                      fontSize: 23,
-                    ),
-                  ),
-                  Text(
-                    'Để khám phá thế giới độc quyền',
-                    style: GoogleFonts.getFont(
-                      'Lato',
-                      color: Color(0xFF0d120E),
-                      letterSpacing: 0.2,
-                      fontSize: 14,
-                    ),
-                  ),
-                  Image.asset(
-                    'assets/images/Illustration.png',
-                    width: 200,
-                    height: 200,
-                  ),
-                  Align(
-                    alignment: Alignment.topLeft,
-                    child: Text(
-                      'Email',
-                      style: GoogleFonts.getFont(
-                        'Nunito Sans',
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.2,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFEAF0FF), Colors.white],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        'assets/images/Logo.png',
+                        width: 150,
+                        height: 150,
                       ),
-                    ),
-                  ),
-                  TextFormField(
-                    onChanged: (value) {
-                      email = value;
-                    },
-                    validator: (value) {
-                      if (value!.isEmpty) {
-                        return 'Vui lòng nhập Email';
-                      } else {
-                        return null;
-                      }
-                    },
-                    decoration: InputDecoration(
-                      fillColor: Colors.white,
-                      filled: true,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(9),
-                      ),
-                      focusedBorder: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      labelText: 'Nhập Email của bạn',
-                      labelStyle: GoogleFonts.getFont(
-                        'Nunito Sans',
-                        fontSize: 14,
-                        letterSpacing: 0.1,
-                      ),
-                      prefixIcon: Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Image.asset(
-                          'assets/icons/email.png',
-                          width: 20,
-                          height: 20,
+                      const SizedBox(height: 8),
+                      Text(
+                        'Đăng ký',
+                        style: GoogleFonts.getFont(
+                          'Lato',
+                          color: const Color(0xFF0d120E),
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.2,
+                          fontSize: 28,
                         ),
                       ),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  Align(
-                    alignment: Alignment.topLeft,
-                    child: Text(
-                      'Họ và tên',
-                      style: GoogleFonts.getFont(
-                        'Nunito Sans',
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.2,
-                      ),
-                    ),
-                  ),
-                  TextFormField(
-                    onChanged: (value) {
-                      fullName = value;
-                    },
-                    validator: (value) {
-                      if (value!.isEmpty) {
-                        return 'Vui lòng nhập họ và tên';
-                      } else {
-                        return null;
-                      }
-                    },
-                    decoration: InputDecoration(
-                      fillColor: Colors.white,
-                      filled: true,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(9),
-                      ),
-                      focusedBorder: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      labelText: 'Nhập họ và tên của bạn',
-                      labelStyle: GoogleFonts.getFont(
-                        'Nunito Sans',
-                        fontSize: 14,
-                        letterSpacing: 0.1,
-                      ),
-                      prefixIcon: Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Image.asset(
-                          'assets/icons/user.jpeg',
-                          width: 20,
-                          height: 20,
+                      const SizedBox(height: 6),
+                      Text(
+                        'Tạo tài khoản mới',
+                        style: GoogleFonts.getFont(
+                          'Nunito Sans',
+                          color: const Color(0xFF6B7280),
+                          letterSpacing: 0.2,
+                          fontSize: 15,
                         ),
                       ),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  Align(
-                    alignment: Alignment.topLeft,
-                    child: Text(
-                      'Mật khẩu',
-                      style: GoogleFonts.getFont(
-                        'Nunito Sans',
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.2,
-                      ),
-                    ),
-                  ),
-                  TextFormField(
-                    onChanged: (value) {
-                      password = value;
-                    },
-                    validator: (value) {
-                      if (value!.isEmpty) {
-                        return 'Vui lòng nhập mật khẩu';
-                      } else {
-                        return null;
-                      }
-                    },
-                    decoration: InputDecoration(
-                      fillColor: Colors.white,
-                      filled: true,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(9),
-                      ),
-                      focusedBorder: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      labelText: 'Nhập mật khẩu của bạn',
-                      labelStyle: GoogleFonts.getFont(
-                        'Nunito Sans',
-                        fontSize: 14,
-                        letterSpacing: 0.1,
-                      ),
-                      prefixIcon: Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Image.asset(
-                          'assets/icons/password.png',
-                          width: 20,
-                          height: 20,
+                      const SizedBox(height: 28),
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
                         ),
-                      ),
-                      suffixIcon: Icon(Icons.visibility),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  InkWell(
-                    onTap: () async {
-                      if (_formKey.currentState!.validate()) {
-                        registerUser();
-                      }
-                    },
-                    child: Container(
-                      width: 319,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(40),
-                        gradient: LinearGradient(
-                          colors: [Color(0xFF102DE1), Color(0xCC0D6EFF)],
-                        ),
-                      ),
-                      child: Stack(
-                        children: [
-                          Positioned(
-                            left: 219,
-                            top: 19,
-                            child: Opacity(
-                              opacity: 0.5,
+                        child: Column(
+                          children: [
+                            AuthTextField(
+                              label: 'Email',
+                              hint: 'Nhập Email của bạn',
+                              prefixIcon: Icons.email_outlined,
+                              keyboardType: TextInputType.emailAddress,
+                              onChanged: (value) {
+                                email = value;
+                              },
+                              validator: (value) {
+                                if (value!.isEmpty) {
+                                  return 'Vui lòng nhập Email';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            AuthTextField(
+                              label: 'Họ và tên',
+                              hint: 'Nhập họ và tên của bạn',
+                              prefixIcon: Icons.person_outline,
+                              onChanged: (value) {
+                                fullName = value;
+                              },
+                              validator: (value) {
+                                if (value!.isEmpty) {
+                                  return 'Vui lòng nhập họ và tên';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            AuthTextField(
+                              label: 'Mật khẩu',
+                              hint: 'Nhập mật khẩu của bạn',
+                              prefixIcon: Icons.lock_outline,
+                              obscureText: _obscurePassword,
+                              onChanged: (value) {
+                                password = value;
+                              },
+                              validator: (value) {
+                                if (value!.isEmpty) {
+                                  return 'Vui lòng nhập mật khẩu';
+                                }
+                                return null;
+                              },
+                              suffix: IconButton(
+                                icon: Icon(
+                                  _obscurePassword
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
+                                  color: const Color(0xFF8A94A6),
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscurePassword = !_obscurePassword;
+                                  });
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            InkWell(
+                              borderRadius: BorderRadius.circular(16),
+                              onTap: () async {
+                                if (_formKey.currentState!.validate()) {
+                                  registerUser();
+                                }
+                              },
                               child: Container(
-                                width: 60,
-                                height: 60,
-                                clipBehavior: Clip.antiAlias,
+                                width: double.infinity,
+                                height: 54,
                                 decoration: BoxDecoration(
-                                  border: Border.all(
-                                    width: 12,
-                                    color: Color(0xFF103DE5),
+                                  borderRadius: BorderRadius.circular(16),
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      Color(0xFF102DE1),
+                                      Color(0xFF0D6EFF),
+                                    ],
                                   ),
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            left: 260,
-                            top: 29,
-                            child: Opacity(
-                              opacity: 0.5,
-                              child: Container(
-                                width: 10,
-                                height: 10,
-                                clipBehavior: Clip.antiAlias,
-                                decoration: BoxDecoration(
-                                  border: Border.all(width: 3),
-                                  color: Color(0xFF2141E5),
-                                  borderRadius: BorderRadius.circular(5),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            left: 281,
-                            top: -10,
-                            child: Opacity(
-                              opacity: 0.3,
-                              child: Container(
-                                width: 20,
-                                height: 20,
-                                clipBehavior: Clip.antiAlias,
-                                decoration: BoxDecoration(
-                                  border: Border.all(width: 3),
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Center(
-                            child: isLoading
-                                ? const CircularProgressIndicator(
-                                    color: Colors.white,
-                                  )
-                                : Text(
-                                    'Đăng ký',
-                                    style: GoogleFonts.getFont(
-                                      'Lato',
-                                      fontSize: 18,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(
+                                        0xFF102DE1,
+                                      ).withValues(alpha: 0.3),
+                                      blurRadius: 16,
+                                      offset: const Offset(0, 8),
                                     ),
-                                  ),
+                                  ],
+                                ),
+                                child: Center(
+                                  child: isLoading
+                                      ? const SizedBox(
+                                          width: 24,
+                                          height: 24,
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2.5,
+                                          ),
+                                        )
+                                      : Text(
+                                          'Đăng ký',
+                                          style: GoogleFonts.getFont(
+                                            'Lato',
+                                            fontSize: 18,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Đã có tài khoản?',
+                            style: GoogleFonts.roboto(
+                              fontWeight: FontWeight.w500,
+                              letterSpacing: 0.5,
+                              color: const Color(0xFF6B7280),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return const LoginScreen();
+                                  },
+                                ),
+                              );
+                            },
+                            child: Text(
+                              'Đăng nhập',
+                              style: GoogleFonts.roboto(
+                                color: const Color(0xFF103DE5),
+                                letterSpacing: 0.5,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Đã có tài khoản?',
-                        style: GoogleFonts.roboto(
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 1,
-                        ),
-                      ),
-                      SizedBox(width: 10),
-                      InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) {
-                                return LoginScreen();
-                              },
-                            ),
-                          );
-                        },
-                        child: Text(
-                          'Đăng nhập',
-                          style: GoogleFonts.roboto(
-                            color: Color(0xFF103DE5),
-                            letterSpacing: 1,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
                     ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
